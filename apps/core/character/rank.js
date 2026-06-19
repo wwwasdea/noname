@@ -2668,6 +2668,7 @@ window.noname_character_rank = {
 			"v_sunce",
 		],
 		epic: [
+			"pot_lvyi",
 			"dc_shen_liubei",
 			"dc_shen_zhangliao",
 			"dc_muludawang",
