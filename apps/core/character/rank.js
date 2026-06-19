@@ -554,6 +554,7 @@ window.noname_character_rank = {
 	],
 	bp: [
 		"pot_lvyi",
+		"pot_caozhen",
 		"dc_shen_liubei",
 		"pot_zhangren",
 		"pot_sunchen",
@@ -2670,6 +2671,7 @@ window.noname_character_rank = {
 		],
 		epic: [
 			"pot_lvyi",
+			"pot_caozhen",
 			"dc_shen_liubei",
 			"dc_shen_zhangliao",
 			"dc_muludawang",

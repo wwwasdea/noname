@@ -1,4 +1,10 @@
 const characters = {
+	pot_caozhen: {
+		sex: "male",
+		group: "wei",
+		hp: 4,
+		skills: ["potsifeng"],
+	},
 	pot_lvyi: {
 		sex: "male",
 		group: "wu",
