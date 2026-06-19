@@ -116,7 +116,6 @@ const skills = {
 			},
 		},
 	},
-
 	potsongyan: {
 		audio: 2,
 		trigger: {
@@ -171,7 +170,6 @@ const skills = {
 			},
 		},
 	},
-
 	potshishi: {
 		audio: 2,
 		forced: true,
