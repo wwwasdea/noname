@@ -55,45 +55,29 @@ const skills = {
 			} else {
 				player.chat("没牌喽");
 			}
-			player.addTempSkill(event.name + "_effect", "phaseUseAfter");
-			player.markAuto(event.name + "_effect", [card]);
-		},
-		subSkill: {
-			round: { charlotte: true, onremove: true },
-			effect: {
-				audio: "pothuilv",
-				forced: true,
-				charlotte: true,
-				trigger: {
-					global: "phaseUseEnd",
-				},
-				onremove(player, skill) {
-					delete player.storage[skill];
-					game.countPlayer(current => {
-						current.removeGaintag("pothuilv");
-					});
-				},
-				logTarget: "player",
-				filter(event, player) {
-					const bool1 = event.player.hasHistory("useCard", evt => evt.getParent("phaseUse") == event && evt.cards?.some(card => player.getStorage("pothuilv_effect").includes(card)));
-					const bool2 = !Array.from(ui.discardPile.childNodes).some(card => player.getStorage("pothuilv_effect").includes(card));
-					return bool1 || bool2;
-				},
-				async content(event, trigger, player) {
-					const bool1 = trigger.player.hasHistory("useCard", evt => evt.getParent("phaseUse") == trigger && evt.cards?.some(card => player.getStorage(event.name).includes(card)));
-					const bool2 = !Array.from(ui.discardPile.childNodes).some(card => player.getStorage(event.name).includes(card));
+			player
+				.when({ global: "phaseUseEnd" })
+				.filter(evt => evt == trigger)
+				.step(async (event, trigger, player) => {
+					const target = trigger.player;
+					player.removeSkill(event.name);
+					const bool1 = target.hasHistory("useCard", evt => evt.getParent("phaseUse") == trigger && evt.cards?.includes(card));
+					const bool2 = !Array.from(ui.discardPile.childNodes).includes(card);
+					if (!bool1 && !bool2) {
+						return;
+					}
+					player.logSkill("pothuilv", target);
 					if (bool1) {
-						await trigger.player.damage();
+						await target.damage();
 					}
 					if (bool2) {
-						await player.damage(trigger.player, "unreal");
-						const card = player.getStorage(event.name)[0];
-						if (card && game.hasPlayer(current => current != trigger.player)) {
+						await player.damage(target, "unreal");
+						if (card && game.hasPlayer(current => current != target)) {
 							const result = await player
 								.chooseTarget({
 									prompt2: "隳律：将" + get.translation(card) + "交给另一名角色",
 									filterTarget(card, player, target) {
-										return target != trigger.player;
+										return target != get.event().target;
 									},
 									ai(target) {
 										if (card.name == "du") {
@@ -102,6 +86,7 @@ const skills = {
 										return get.attitude(get.player(), target);
 									},
 								})
+								.set("target", target)
 								.forResult();
 							if (result?.bool && result.targets?.length) {
 								const target = result.targets[0];
@@ -112,8 +97,10 @@ const skills = {
 							}
 						}
 					}
-				},
-			},
+				});
+		},
+		subSkill: {
+			round: { charlotte: true, onremove: true },
 		},
 	},
 	potsongyan: {
@@ -125,95 +112,121 @@ const skills = {
 			return player.hasUseTarget(get.autoViewAs({ name: "wuzhong", isCard: true }));
 		},
 		prompt2: "视为使用一张【无中生有】",
-		global: "potsongyan_wuxie",
 		frequent: true,
 		async content(event, trigger, player) {
-			player.addTempSkill(event.name + "_use");
+			game.countPlayer(current => {
+				current.addTempSkill(event.name + "_wuxie");
+			});
 			await player.chooseUseTarget(get.autoViewAs({ name: "wuzhong", isCard: true }), true);
-			player.removeSkill(event.name + "_use");
-		},
-		loseTargets() {
-			return game.filterPlayer(current => {
-				return current.hasRoundHistory("lose", evt => evt.type == "discard");
+			game.countPlayer(current => {
+				current.removeSkill(event.name + "_wuxie");
 			});
 		},
 		getColors(player) {
-			const colors = [...player
-				.getRoundHistory("lose", evt => evt.type == "discard")
-				.map(evt => evt.cards)]
-				.map(card => get.color(card))
+			return player
+				.getRoundHistory("lose", evt => evt.type == "discard" && evt.cards?.length)
+				.map(evt => evt.cards)
+				.reduce((a, b) => a.concat(b.map(card => get.color(card))), [])
 				.unique();
-			return colors;
 		},
 		subSkill: {
-			use: { charlotte: true },
 			wuxie: {
 				enable: "chooseToUse",
+				charlotte: true,
+				onChooseToUse(event2) {
+					if (!game.online && !event2.potsongyan) {
+						const player2 = event2.player;
+						event2.set("potsongyan", get.info("potsongyan").getColors(player2));
+					}
+				},
+				filter(event2, player2) {
+					if (event2.type != "wuxie") {
+						return false;
+					}
+					const colors = event2.potsongyan || [];
+					return player2.hasCard(card => colors.includes(get.color(card)), "he");
+				},
 				viewAsFilter(player) {
-					if (!game.hasPlayer(current => current.hasSkill("potsongyan_use"))) {
-						return false;
-					}
-					if (!get.info("potsongyan").loseTargets().includes(player)) {
-						return false;
-					}
-					return player.hasCard(card => get.info("potsongyan").getColors(player).includes(get.color(card)), "he");
+					return player.countCards("he");
 				},
 				position: "he",
-				filterCard(card, player) {
-					return get.info("potsongyan").getColors(player).includes(get.color(card));
+				filterCard(card2, player2, event2) {
+					event2 = event2 || _status.event;
+					const colors = event2.potsongyan || [];
+					return colors.includes(get.color(card2));
 				},
 				viewAs: {
 					name: "wuxie",
-					isCard: true,
 				},
 				prompt: "将一张牌当做【无懈可击】使用",
+				check(card) {
+					return 8 - get.value(card);
+				},
 			},
 		},
 	},
 	potshishi: {
 		audio: 2,
 		forced: true,
-		trigger: {
-			player: "damage",
-			global: ["useCard", "respond"],
+		init(player, skill) {
+			//防止因技能失效而导致的与技能描述不符
+			player.addSkill(skill + "_effect");
 		},
-		onremove: true,
-		intro: {
-			content: "$不能响应你使用的牌",
+		onremove(player, skill) {
+			player.removeSkill(skill + "_effect");
+		},
+		trigger: {
+			player: "useCard",
 		},
 		filter(event, player) {
-			if (event.name == "damage") {
-				return event.source?.isIn() && !player.getStorage("potshishi").includes(event.source);
-			}
-			if (event.name == "useCard" && player == event.player) {
-				return player.getStorage("potshishi")?.some(target => target.isIn());
-			}
-			if (!event.respondTo || !Array.isArray(event.respondTo)) {
-				return false;
-			}
-			if (player == event.player || !player.getStorage("potshishi").length) {
-				return false;
-			}
-			return event.respondTo[0] == player;
+			return player.getStorage("potshishi_effect").some(target => target.isIn());
 		},
 		logTarget(event, player) {
-			if (event.name == "damage") {
-				return event.source;
-			}
-			if (event.name == "useCard" && player == event.player) {
-				return player.getStorage("potshishi").filter(i => i.isIn());
-			}
-			return event.player;
+			return player.getStorage("potshishi_effect").filter(i => i.isIn()).sortBySeat();
 		},
 		async content(event, trigger, player) {
-			if (trigger.name == "damage") {
-				player.markAuto(event.name, event.targets);
-			} else if (trigger.name == "useCard" && player == trigger.player) {
-				trigger.directHit.addArray(event.targets);
-				game.log(event.targets, "不可响应", trigger.card);
-			} else {
-				player.unmarkAuto(event.name, player.getStorage(event.name));
-			}
+			trigger.directHit.addArray(event.targets);
+			game.log(event.targets, "不可响应", trigger.card);
+		},
+		subSkill: {
+			effect: {
+				audio: "potshishi",
+				charlotte: true,
+				forced: true,
+				onremove: true,
+				intro: {
+					content: "$不能响应你使用的牌",
+				},
+				trigger: {
+					player: "damage",
+					global: ["useCard", "respond"],
+				},
+				logTarget(event, player) {
+					if (event.name == "damage") {
+						return event.source;
+					}
+					return event.player;
+				},
+				filter(event, player) {
+					if (event.name == "damage") {
+						return event.source?.isIn() && !player.getStorage("potshishi_effect").includes(event.source);
+					}
+					if (!event.respondTo || !Array.isArray(event.respondTo)) {
+						return false;
+					}
+					if (player == event.player || !player.getStorage("potshishi_effect").length) {
+						return false;
+					}
+					return event.respondTo[0] == player;
+				},
+				async content(event, trigger, player) {
+					if (trigger.name == "damage") {
+						player.markAuto(event.name, event.targets);
+					} else {
+						player.unmarkAuto(event.name, player.getStorage(event.name));
+					}
+				},
+			},
 		},
 	},
 	//势曹爽
