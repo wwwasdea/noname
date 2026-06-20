@@ -1423,7 +1423,11 @@ const skills = {
 			if (event.name == "phase") {
 				return !player.countCharge(true);
 			}
-			return player.countCharge(true) && event.getl?.(player)?.cards2.some(card => !get.is.damageCard(card));
+			if (!event.getl?.(player)?.cards2.some(card => !get.is.damageCard(card)) || !player.countCharge(true)) {
+				return false;
+			}
+			const cards = event.getl(player).cards2;
+			return event.getParent()?.name != "useCard" || cards.some(card => get.type(card) != "equip");
 		},
 		async content(event, trigger, player) {
 			if (trigger.name == "phase") {
@@ -1512,16 +1516,20 @@ const skills = {
 		async content(event, trigger, player) {
 			const { num } = trigger;
 			const list = ["wuzhong", "wuxie", "wugu"];
-			const numList = [2, 5, 7];
+			const numList = [2, 5, 7],
+				cards = [];
 			for (let i = 0; i < numList.length; i++) {
 				if (num >= numList[i]) {
 					const card = get.discardPile(card => get.name(card) == list[i]);
 					if (card) {
-						await player.gain(card, "gain2");
+						cards.push(card);
 					} else {
 						player.chat(`没有${get.translation(list[i])}!`);
 					}
 				}
+			}
+			if (cards.length) {
+				await player.gain(cards, "gain2");
 			}
 		},
 	},

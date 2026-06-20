@@ -10069,8 +10069,8 @@ const skills = {
 			}
 			list.push("选项二");
 			const result =
-				list.length > 1 ?
-					await player
+				list.length > 1
+					? await player
 						.chooseControl(list)
 						.set("choiceList", choiceList)
 						.set("ai", () => {
@@ -10081,8 +10081,8 @@ const skills = {
 							return controls.slice(0).randomGet();
 						})
 						.set("target", target)
-						.forResult() :
-					{ control: list[0] };
+						.forResult()
+					: { control: list[0] };
 			if (typeof result.control == "string") {
 				event.result = {
 					bool: true,
