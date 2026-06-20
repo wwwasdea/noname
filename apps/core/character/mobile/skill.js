@@ -125,8 +125,8 @@ const skills = {
 				}
 				const storage = player.storage[event.skill];
 				player.setStorage(event.skill, [storage[0] + 1, storage[1]], true);
-				if (storage[0] > 2) {
-					player.setStorage(event.skill, [storage[0] - 3, storage[1]], true);
+				if (player.storage[event.skill][0] > 2) {
+					player.setStorage(event.skill, [player.storage[event.skill][0] - 3, player.storage[event.skill][1]], true);
 					const targets = game.filterPlayer(current => current.countCharge(true));
 					if (targets.length) {
 						event.result =
