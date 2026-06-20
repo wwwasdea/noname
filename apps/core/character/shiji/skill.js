@@ -1141,9 +1141,9 @@ const skills = {
 					list.length == 1
 						? { bool: true, links: list }
 						: await player
-								.chooseButton([`辉逝：选择一个觉醒技，令${get.translation(target)}可无视条件发动该技能`, [list, "skill"]], true)
-								.set("displayIndex", false)
-								.forResult();
+							.chooseButton([`辉逝：选择一个觉醒技，令${get.translation(target)}可无视条件发动该技能`, [list, "skill"]], true)
+							.set("displayIndex", false)
+							.forResult();
 				if (result?.bool && result.links?.length) {
 					const [skill] = result.links;
 					target.storage.resghuishi_mark = skill;
@@ -4075,9 +4075,9 @@ const skills = {
 		},
 		check(event, player) {
 			var card = {
-					name: "sha",
-					cards: event.cards.filterInD(),
-				},
+				name: "sha",
+				cards: event.cards.filterInD(),
+			},
 				target = event.source;
 			return !player.canUse(card, target, false) || get.effect(target, card, player, player) > 0;
 		},
@@ -5264,7 +5264,7 @@ const skills = {
 				await player.gainPlayerCard(target, true, "h");
 			}
 			if (["选项二", "背水！"].includes(control) && player.hasCard(card => get.type(card, null, player) == "basic" && lib.filter.cardDiscardable(card, player, "dbquedi"), "h")) {
-				const { bool } = await player.chooseToDiscard("h", "弃置一张基本牌", { type: "basic" }, true).forResult();
+				const { bool } = await player.chooseToDiscard("h", "弃置一张基本牌", { type: "basic" }).forResult();
 				if (bool) {
 					trigger.getParent().baseDamage++;
 				}
@@ -6233,15 +6233,15 @@ const skills = {
 					const result =
 						targets.length > 1
 							? await player
-									.chooseTarget(`令一名其他角色获得${get.poptip("mbyongjue")}`, true, lib.filter.notMe)
-									.set("ai", target => {
-										return get.attitude(get.player(), target);
-									})
-									.forResult()
+								.chooseTarget(`令一名其他角色获得${get.poptip("mbyongjue")}`, true, lib.filter.notMe)
+								.set("ai", target => {
+									return get.attitude(get.player(), target);
+								})
+								.forResult()
 							: {
-									bool: true,
-									targets: targets,
-								};
+								bool: true,
+								targets: targets,
+							};
 					if (result?.bool && result.targets?.length) {
 						const target = result.targets[0];
 						player.line(target);
@@ -9107,12 +9107,12 @@ const skills = {
 					return (
 						num +
 						0.6 *
-							(_status.event.name == "chooseToUse" &&
+						(_status.event.name == "chooseToUse" &&
 							player.hasHistory("useCard", function (evt) {
 								return evt.card.name == "sha" && evt.cards.length == 1;
 							})
-								? 1
-								: -1)
+							? 1
+							: -1)
 					);
 				}
 			},
@@ -9396,7 +9396,7 @@ const skills = {
 								target.countCards("h", function (card) {
 									return target.hasValueTarget(card) && get.effect(player, card, target, target) > 0;
 								}) *
-									Math.sqrt(target.countCards("h")))
+								Math.sqrt(target.countCards("h")))
 						);
 					}
 					return (
@@ -9405,7 +9405,7 @@ const skills = {
 							target.countCards("h", function (card) {
 								return target.hasValueTarget(card) && get.effect(player, card, target, target) > 0;
 							}) *
-								Math.sqrt(target.countCards("h")))
+							Math.sqrt(target.countCards("h")))
 					);
 				},
 			},

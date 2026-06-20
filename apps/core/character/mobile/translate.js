@@ -1,6 +1,12 @@
 import { lib, game, ui, get, ai, _status } from "noname";
 
 const translates = {
+	re_wangji: "手杀界王基",
+	re_wangji_prefix: "手杀界",
+	reqizhi: "奇制",
+	reqizhi_info: "蓄力技（1/3），出牌阶段，你可以消耗1点蓄力点令一名角色摸三张牌，然后本回合你使用基本牌或普通锦囊牌指定目标后，你依次观看本回合因此摸牌的角色的手牌并弃置其中一张。",
+	rejinqu: "进趋",
+	rejinqu_info: "锁定技，你每使用三张牌后，你令一名拥有蓄力技的角色获得1点蓄力点；结束阶段，你摸X张牌（X为本回合你蓄力点点数存在过的最高值）。",
 	re_zhoufei: "手杀界周妃",
 	re_zhoufei_prefix: "手杀界",
 	reliangyin: "良姻",

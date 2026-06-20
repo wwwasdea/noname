@@ -465,4 +465,5 @@ window.noname_character_replace = {
 	wutugu: ["wutugu", "mb_wutugu"],
 	cuimao: ["cuimao", "mb_cuimao"],
 	yanyan: ["yanyan", "re_yanyan"],
+	wangji: ["wangji", "re_wangji"],
 };

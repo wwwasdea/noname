@@ -2,6 +2,194 @@ import { lib, game, ui, get, ai, _status } from "noname";
 
 /** @type { importCharacterConfig["skill"] } */
 const skills = {
+	//界王基------by清风
+	reqizhi: {
+		audio: 2,
+		chargeSkill: 3,
+		beginMarkCount: 1,
+		enable: "phaseUse",
+		filterTarget: true,
+		filter(event, player) {
+			return player.countCharge();
+		},
+		async content(event, trigger, player) {
+			const target = event.target;
+			await player.removeCharge(1);
+			await target.draw(3);
+			player.addTempSkill(event.name + "_effect");
+			player.markAuto(event.name + "_effect", [target]);
+		},
+		ai: {
+			order: 1,
+			result: {
+				player(player) {
+					if (player.countCharge() > 2 || player.getCardUsable("sha", true)) {
+						return 1;
+					}
+					return 0;
+				},
+				target: 1,
+			},
+		},
+		group: "reqizhi_init",
+		subSkill: {
+			init: {
+				audio: "reqizhi",
+				forced: true,
+				trigger: {
+					player: "enterGame",
+					global: "phaseBefore",
+				},
+				filter(event, player) {
+					if (!player.countCharge(true)) {
+						return false;
+					}
+					return event.name != "phase" || game.phaseNumber == 0;
+				},
+				async content(event, trigger, player) {
+					const num = lib.skill.reqizhi.beginMarkCount;
+					await player.addCharge(num);
+					await game.delayx();
+				},
+			},
+			effect: {
+				audio: "reqizhi",
+				charlotte: true,
+				onremove: true,
+				forced: true,
+				intro: {
+					content: "本回合使用基本牌或普通锦囊牌指定目标后，依次观看$的手牌并弃置其中一张",
+				},
+				trigger: {
+					player: "useCardToPlayered",
+				},
+				filter(event, player) {
+					return event.isFirstTarget && event.targets?.length && ["basic", "trick"].includes(get.type(event.card)) && player.getStorage("reqizhi_effect").some(target => target.countCards("h"));
+				},
+				logTarget(event, player) {
+					return player
+						.getStorage("reqizhi_effect")
+						.filter(target => target.countCards("h"))
+						.sortBySeat();
+				},
+				async content(event, trigger, player) {
+					const targets = event.targets;
+					for (const target of targets) {
+						if (target.countCards("h")) {
+							await player.discardPlayerCard(target, true, "h", "visible");
+						}
+					}
+				},
+			},
+		},
+	},
+	rejinqu: {
+		audio: "jinqu",
+		locked: true,
+		trigger: {
+			player: ["useCardAfter", "phaseJieshuBegin"],
+		},
+		filter(event, player) {
+			return event.name == "useCard" || (player.storage.rejinqu?.[1] && player.storage.rejinqu[1] > 0);
+		},
+		init(player, skill) {
+			if (!player.storage[skill]) {
+				player.storage[skill] = [0, 0];
+			}
+		},
+		onremove: true,
+		marktext: "趋",
+		intro: {
+			name: "趋",
+			markcount(storage) {
+				storage = storage ?? [0, 0];
+				let str = storage[0];
+				if (storage[1] > 0) {
+					str += `/${storage[1]}`;
+				}
+				return str;
+			},
+			content(storage) {
+				storage = storage ?? [0, 0];
+				let str = `<li>使用牌数：${storage[0]}/3`;
+				if (storage[1] > 0) {
+					str += `<li>本回合蓄力点最大值：${storage[1]}`;
+				}
+				return str;
+			},
+		},
+		async cost(event, trigger, player) {
+			if (trigger.name == "useCard") {
+				if (!player.storage[event.skill]) {
+					player.storage[event.skill] = [0, 0];
+				}
+				const storage = player.storage[event.skill];
+				player.setStorage(event.skill, [storage[0] + 1, storage[1]], true);
+				if (storage[0] > 2) {
+					player.setStorage(event.skill, [storage[0] - 3, storage[1]], true);
+					const targets = game.filterPlayer(current => current.countCharge(true));
+					if (targets.length) {
+						event.result = targets.length > 1 ?
+							await player
+								.chooseTarget({
+									prompt: get.prompt(event.skill),
+									prompt2: "令一名有蓄力技的角色获得一点蓄力点",
+									forced: true,
+									filterTarget(card, player, target) {
+										return get.event().targets.includes(target);
+									},
+									ai(target) {
+										return get.attitude(get.player(), target);
+									},
+								})
+								.set("targets", targets)
+								.forResult() :
+							{ bool: true, targets: targets };
+					}
+				}
+			} else {
+				event.result = {
+					bool: true,
+				};
+			}
+		},
+		async content(event, trigger, player) {
+			if (event.targets?.length) {
+				await event.targets[0].addCharge(1);
+			} else {
+				const num = player.storage[event.name][1];
+				await player.draw(num);
+			}
+		},
+		group: "rejinqu_mark",
+		subSkill: {
+			mark: {
+				silent: true,
+				popup: false,
+				lastDo: true,
+				trigger: {
+					player: ["phaseBefore", "addMark", "removeMark", "phaseAfter"],
+				},
+				filter(event, player) {
+					return event.name == "phase" || (event.markName == "charge" && player == _status.currentPhase);
+				},
+				content() {
+					if (!player.storage.rejinqu) {
+						player.storage.rejinqu = [0, 0];
+					}
+					const storage = player.storage.rejinqu;
+					if (event.triggername == "phaseAfter") {
+						player.setStorage("rejinqu", [storage[0], 0], true);
+					} else {
+						const num = player.countCharge();
+						if (num > player.storage.rejinqu[1]) {
+							player.setStorage("rejinqu", [storage[0], num], true);
+						}
+					}
+				},
+			},
+		},
+	},
 	//界周妃
 	reliangyin: {
 		audio: 2,

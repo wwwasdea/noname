@@ -1,4 +1,10 @@
 const characters = {
+	re_wangji: {
+		sex: "male",
+		group: "wei",
+		hp: 3,
+		skills: ["reqizhi", "rejinqu"],
+	},
 	re_zhoufei: {
 		sex: "female",
 		group: "wu",
