@@ -1,6 +1,18 @@
 import { lib, game, ui, get, ai, _status } from "noname";
 
 const translates = {
+	pot_xiahouba: "势夏侯霸",
+	pot_xiahouba_prefix: "势",
+	potlibing: "厉兵",
+	potlibing_info: "锁定技，你使用非伤害牌结算后，执行上次执行项的下一项：1.攻击范围+1；2.摸X张牌（X为执行此选项次数+1）；3.使用的下一张伤害牌伤害+1。你使用伤害牌结算后，重置此技能。",
+	potpoxi: "迫袭",
+	potpoxi_info: "锁定技，你的牌因弃置而进入弃牌堆时，若此牌为【杀】，你使用之（无次数与距离限制）。以此法使用的【杀】不能被手牌数小于等于你的角色响应。",
+	pot_chenqun: "势陈群",
+	pot_chenqun_prefix: "势",
+	potfaen: "法恩",
+	potfaen_info: "当有角色使用牌时，若上一张牌的使用者为你，你可选择：1.令其摸一张牌；2.令其弃置一张牌。若如此做，本回合下一张牌被使用时，你令使用者额外执行另一项。",
+	potdingpin: "定品",
+	potdingpin_info: "每轮限一次，一个回合结束时，你可令本回合失去牌最多的一名角色执行一个额外的摸牌阶段。",
 	pot_caozhen: "势曹真",
 	pot_caozhen_prefix: "势",
 	potsifeng: "伺锋",

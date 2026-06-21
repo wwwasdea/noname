@@ -3,6 +3,257 @@ import { lib, game, ui, get, ai, _status } from "noname";
 /** @type { importCharacterConfig["skill"] } */
 const skills = {
 	//potential--潜在, 潜力, 可能, 电位, 潜能, 势
+	//势夏侯霸------by 清风
+	potlibing: {
+		audio: 2,
+		forced: true,
+		trigger: { player: "useCardAfter" },
+		mark: true,
+		intro: {
+			markcount(storage, player) {
+				if (!storage) {
+					return 1;
+				}
+				return 1 + storage;
+			},
+			content(storage, player) {
+				const num = player.countMark("potlibing_attack");
+				let str = "<li>攻击范围+" + num;
+				str += "<li>使用非伤害牌结算后：<br>";
+				if (!storage) {
+					str += "攻击范围+1";
+				} else if (typeof storage == "number" && storage == 1) {
+					const num = 1 + player.countMark("potlibing_draw");
+					str += "摸" + num + "张牌";
+				} else if (typeof storage == "number" && storage == 2) {
+					str += "使用下一张伤害牌伤害+1";
+				}
+				return str;
+			},
+		},
+		filter(event, player) {
+			return !get.is.damageCard(event.card) || player.storage.potlibing || player.hasMark("potlibing_attack") || player.hasMark("potlibing_draw");
+		},
+		onremove(player, skill) {
+			player.clearMark(skill + "_attack", false);
+			player.clearMark(skill + "_draw", false);
+			delete player.storage[skill];
+		},
+		async content(event, trigger, player) {
+			if (get.is.damageCard(trigger.card)) {
+				get.info(event.name).onremove(player, event.name);
+				game.log(player, "重置了【历兵】");
+			} else {
+				if (!player.storage[event.name]) {
+					player.addMark(event.name + "_attack", 1, false);
+					player.storage[event.name] = 1;
+				} else if (typeof player.storage[event.name] == "number" && player.storage[event.name] == 1) {
+					const num = 1 + player.countMark(event.name + "_draw");
+					await player.draw(num);
+					player.storage[event.name] = 2;
+					player.addMark(event.name + "_draw", 1, false);
+				} else {
+					delete player.storage[event.name];
+					player.addSkill(event.name + "_dam");
+					player.addMark(event.name + "_dam", 1, false);
+				}
+			}
+			player.markSkill(event.name);
+		},
+		subSkill: {
+			dam: {
+				charlotte: true,
+				mark: true,
+				intro: {
+					content: "下一张伤害牌伤害+#",
+				},
+				forced: true,
+				onremove: true,
+				audio: "potlibing",
+				trigger: { player: "useCard" },
+				filter(event, player) {
+					return get.is.damageCard(event.card) && player.countMark("potlibing_dam");
+				},
+				content() {
+					if (typeof trigger.baseDamage != "number") {
+						trigger.baseDamage = 1;
+					}
+					trigger.baseDamage += player.countMark(event.name);
+					player.removeSkill(event.name);
+				},
+			},
+		},
+	},
+	potpoxi: {
+		audio: 2,
+		locked: true,
+		trigger: {
+			player: "loseAfter",
+			global: "loseAsyncAfter",
+		},
+		filter(event, player) {
+			if (event.type != "discard") {
+				return false;
+			}
+			const evt = event.getl?.(player);
+			return evt?.cards2?.some(card => card.name == "sha");
+		},
+		getIndex(event, player) {
+			const evt = event.getl(player),
+				cards = evt.cards2.filter(card => card.name == "sha" && player.hasUseTarget(card, false, false));
+			return cards;
+		},
+		popup: false,
+		async cost(event, trigger, player) {
+			const card = event.indexedData;
+			if (player.hasUseTarget(card, false, false)) {
+				const result = await player
+					.chooseUseTarget(card, true, false, "nodistance")
+					.set("oncard", () => {
+						const event = _status.event;
+						const targets = game.filterPlayer(current => current.countCards("h") <= player.countCards("h"));
+						event.directHit.addArray(targets);
+					})
+					.set("logSkill", event.skill)
+					.forResult();
+				if (result?.bool) {
+					event.result = {
+						bool: true,
+					};
+				}
+			}
+		},
+		async content(event, trigger, player) { },
+	},
+	//势陈群------by 清风
+	potfaen: {
+		audio: 2,
+		trigger: { global: "useCard" },
+		filter(event, player) {
+			const history = game.getAllGlobalHistory("useCard");
+			const index = history.indexOf(event);
+			if (!event.player?.isIn()) {
+				return false;
+			}
+			if (index > 0) {
+				return history[index - 1].player == player;
+			}
+			return false;
+		},
+		async cost(event, trigger, player) {
+			const target = trigger.player;
+			const list = [`令${get.translation(target)}摸一张牌`];
+			if (target.countDiscardableCards(target, "he")) {
+				list.push(`令${get.translation(target)}弃一张牌`);
+			}
+			list.push("cancel2");
+			const result = await player
+				.chooseControl(list)
+				.set("prompt", "法恩：你可以选择一项")
+				.set("ai", () => {
+					const { player, target, controls } = get.event();
+					if (get.attitude(player, target) > 0) {
+						controls.remove(controls[1]);
+					}
+					return controls.slice(0).remove("cancel2").randomGet();
+				})
+				.set("target", target)
+				.forResult();
+			if (typeof result.control == "string" && result.control != "cancel2") {
+				event.result = {
+					bool: true,
+					cost_data: result.control,
+				};
+			}
+		},
+		logTarget: "player",
+		async content(event, trigger, player) {
+			const {
+				cost_data: link,
+				targets: [target],
+			} = event;
+			if (link == `令${get.translation(target)}摸一张牌`) {
+				await target.draw();
+			} else {
+				if (target.countDiscardableCards(target, "he")) {
+					await target.chooseToDiscard(true, "he");
+				}
+			}
+			player.addTempSkill(event.name + "_effect");
+			player.markAuto(event.name + "_effect", [link == `令${get.translation(target)}摸一张牌` ? "discard" : "draw"]);
+		},
+		subSkill: {
+			effect: {
+				audio: "potfaen",
+				charlotte: true,
+				forced: true,
+				onremove: true,
+				firstDo: true,
+				intro: {
+					content(storage, player) {
+						return "本回合下一张牌被使用时，使用者须" + (storage.includes("draw") ? "摸" : "") + (storage.includes("discard") ? "弃" : "") + "一张牌";
+					},
+				},
+				trigger: { global: "useCard" },
+				filter(event, player) {
+					return player.getStorage("potfaen_effect").length && event.player?.isIn();
+				},
+				logTarget: "player",
+				async content(event, trigger, player) {
+					if (player.getStorage(event.name).includes("draw")) {
+						await trigger.player.draw();
+					}
+					if (player.getStorage(event.name).includes("discard") && trigger.player.countDiscardableCards(trigger.player, "he")) {
+						await trigger.player.chooseToDiscard(true, "he");
+					}
+					player.removeSkill(event.name);
+				},
+			},
+		},
+	},
+	potdingpin: {
+		audio: 2,
+		round: 1,
+		trigger: { global: "phaseEnd" },
+		filter(event, player) {
+			return game.hasPlayer(current => current.hasHistory("lose", evt => evt.cards?.length));
+		},
+		async cost(event, trigger, player) {
+			let maxLose = 0,
+				targets = [];
+			for (const target of game.filterPlayer()) {
+				const lose = target.getHistory("lose").reduce((sum, evt) => sum + evt.cards.length, 0);
+				if (lose > maxLose) {
+					maxLose = lose;
+					targets = [];
+					targets.push(target);
+				} else if (lose === maxLose) {
+					targets.push(target);
+				}
+			}
+			event.result = await player
+				.chooseTarget({
+					prompt: get.prompt(event.skill),
+					prompt2: "令一名角色执行一个额外的摸牌阶段",
+					filterTarget(card, player, target) {
+						return get.event().targets.includes(target);
+					},
+					ai(target) {
+						return get.attitude(get.player(), target);
+					},
+				})
+				.set("targets", targets)
+				.forResult();
+		},
+		async content(event, trigger, player) {
+			const {
+				targets: [target],
+			} = event;
+			const next = target.phaseDraw();
+			event.next.remove(next);
+			trigger.next.push(next);
+		},
+	},
 	//势曹真------by 清风
 	potsifeng: {
 		audio: 2,
@@ -6123,11 +6374,11 @@ const skills = {
 						await player.draw();
 					} else {
 						const history = player.getHistory("lose", evt => {
-								if ((evt.relatedEvent || evt.getParent()) !== trigger) {
-									return false;
-								}
-								return Object.values(evt.gaintag_map).flat().includes("potfuji");
-							})[0],
+							if ((evt.relatedEvent || evt.getParent()) !== trigger) {
+								return false;
+							}
+							return Object.values(evt.gaintag_map).flat().includes("potfuji");
+						})[0],
 							cards = history.getl(player).cards2.filter(card => history.gaintag_map[card.cardid]?.includes("potfuji"));
 						let gains = [];
 						for (const card of cards) {
@@ -6332,18 +6583,18 @@ const skills = {
 						get.info("potzhanlie").limit - player.countMark("potzhanlie_lie"),
 						Math.max(
 							player.countMark("potzhanlie_addMark") -
-								game
-									.getGlobalHistory(
-										"everything",
-										evt => {
-											if (evt === event) {
-												return false;
-											}
-											return ["lose", "loseAsync", "cardsDiscard"].includes(evt.name) && evt.getd().some(i => i.name === "sha");
-										},
-										event
-									)
-									.reduce((sum, evt) => sum + evt.getd().filter(i => i.name === "sha").length, 0),
+							game
+								.getGlobalHistory(
+									"everything",
+									evt => {
+										if (evt === event) {
+											return false;
+										}
+										return ["lose", "loseAsync", "cardsDiscard"].includes(evt.name) && evt.getd().some(i => i.name === "sha");
+									},
+									event
+								)
+								.reduce((sum, evt) => sum + evt.getd().filter(i => i.name === "sha").length, 0),
 							0
 						)
 					);
@@ -6426,12 +6677,12 @@ const skills = {
 										return (
 											sum +
 											effect *
-												(target.hasSkillTag("filterDamage", null, {
-													player: player,
-													card: trigger.card,
-												})
-													? 1
-													: 1 + (trigger.baseDamage || 1) + (trigger.extraDamage || 0))
+											(target.hasSkillTag("filterDamage", null, {
+												player: player,
+												card: trigger.card,
+											})
+												? 1
+												: 1 + (trigger.baseDamage || 1) + (trigger.extraDamage || 0))
 										);
 									}, 0);
 								case "弃牌响应":
@@ -6587,7 +6838,7 @@ const skills = {
 								})()
 							)
 						) *
-							get.effect(target, { name: "draw" }, player, player)
+						get.effect(target, { name: "draw" }, player, player)
 					);
 				},
 			},
