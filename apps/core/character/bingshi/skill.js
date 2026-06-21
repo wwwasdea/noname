@@ -35,8 +35,8 @@ const skills = {
 			return !get.is.damageCard(event.card) || player.storage.potlibing || player.hasMark("potlibing_attack") || player.hasMark("potlibing_draw");
 		},
 		onremove(player, skill) {
-			player.clearMark(skill + "_attack", false);
-			player.clearMark(skill + "_draw", false);
+			player.removeSkill(skill + "_attack");
+			player.removeSkill(skill + "_draw");
 			delete player.storage[skill];
 		},
 		async content(event, trigger, player) {
@@ -45,12 +45,14 @@ const skills = {
 				game.log(player, "重置了【历兵】");
 			} else {
 				if (!player.storage[event.name]) {
+					player.addSkill(event.name + "_attack");
 					player.addMark(event.name + "_attack", 1, false);
 					player.storage[event.name] = 1;
 				} else if (typeof player.storage[event.name] == "number" && player.storage[event.name] == 1) {
 					const num = 1 + player.countMark(event.name + "_draw");
 					await player.draw(num);
 					player.storage[event.name] = 2;
+					player.addSkill(event.name + "_draw");
 					player.addMark(event.name + "_draw", 1, false);
 				} else {
 					delete player.storage[event.name];
@@ -61,6 +63,16 @@ const skills = {
 			player.markSkill(event.name);
 		},
 		subSkill: {
+			draw: { charlotte: true, onremove: true },
+			attack: {
+				onremove: true,
+				charlotte: true,
+				mod: {
+					attackRange(player, num) {
+						return num + player.countMark("potlibing_attack");
+					},
+				},
+			},
 			dam: {
 				charlotte: true,
 				mark: true,
