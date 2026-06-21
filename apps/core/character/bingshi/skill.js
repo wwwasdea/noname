@@ -4940,7 +4940,11 @@ const skills = {
 					global: ["loseAsyncAfter", "equipAfter", "gainAfter", "addToExpansionAfter", "addJudgeAfter"],
 				},
 				filter(event, player) {
-					return event.getl(player)?.cards2?.length && player.hasMark("mbrunwei_twice");
+					if (!event.getl?.(player)?.cards2?.length || !player.hasMark("mbrunwei_twice")) {
+						return false;
+					}
+					const cards = event.getl(player).cards2;
+					return event.getParent()?.name != "useCard" || cards.some(card => get.type(card) != "equip");
 				},
 				silent: true,
 				async content(event, trigger, player) {
