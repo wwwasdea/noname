@@ -170,7 +170,7 @@ const translates = {
 	potzhuangshi_info: "出牌阶段开始时，你可以执行任意项：1.弃置任意张手牌，令你此阶段使用的前等量张牌无距离限制且不可被响应；2.失去任意点体力，令你此阶段使用的前等量张牌不计入次数限制。",
 	potzhuangshi_tag: "已选择弃置",
 	potyinzhan: "饮战",
-	potyinzhan_info: `锁定技，你使用【杀】对一名角色造成伤害时，若：1.你的体力值小于等于其，此伤害+1；2.你的牌数小于等于其，你于此【杀】结算结束后弃置其一张牌；${get.poptip("rule_chengshi")}：你回复1点体力，获得其弃置的牌。`,
+	potyinzhan_info: `锁定技，你使用【杀】对一名角色造成伤害时，若：1.你的体力值小于等于其，此伤害+1；2.你的手牌数小于等于其，你于此【杀】结算结束后弃置其一张牌；${get.poptip("rule_chengshi")}：你回复1点体力，获得其弃置的牌。`,
 	potkuanggu: "狂骨",
 	potkuanggu_info: "你对距离1以内的一名角色造成伤害后，可以选择一项：1.回复1点体力；2.摸一张牌。",
 	potkuanggu_pot_weiyan_achieve: "狂骨·二级",
