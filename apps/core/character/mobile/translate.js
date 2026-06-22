@@ -1,6 +1,12 @@
 import { lib, game, ui, get, ai, _status } from "noname";
 
 const translates = {
+	mb_dingshangwan: "手杀丁尚涴",
+	mb_dingshangwan_prefix: "手杀",
+	mbzhaofu: "照抚",
+	mbzhaofu_info: "每回合限一次，你可弃置所有手牌视为使用一张：1.【杀】；2.【闪】；3.【酒】；4.【桃】。若你因此恰好弃置了序号数张牌，你可令一名其他角色获得一个对应效果的【照抚】，且其发动后或其回合结束时失去对应效果的【照抚】。",
+	mbqiliu: "泣留",
+	mbqiliu_info: `锁定技，当你每轮首次因${get.poptip("mbzhaofu")}失去所有手牌后，你摸X张牌（X为你已执行过的回合数）；当你于回合外对其他角色使用【桃】后，防止其本回合受到的下一次伤害。若其因此防止了伤害，此技能本轮失效。`,
 	re_wangji: "手杀界王基",
 	re_wangji_prefix: "手杀界",
 	reqizhi: "奇制",

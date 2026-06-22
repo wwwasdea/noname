@@ -950,6 +950,7 @@ window.noname_character_rank = {
 		"yue_zhoufei",
 		"ns_mengyou",
 		"ol_dingshangwan",
+		"mb_dingshangwan",
 		"ol_liwan",
 		"xin_zhangliang",
 		"junk_liuyan",
@@ -2045,6 +2046,7 @@ window.noname_character_rank = {
 		"tw_jsrg_hejin",
 	],
 	c: [
+		"sb_chentai",
 		"ol_quancong",
 		"star_zhangsong",
 		"xy_caocao",
@@ -4000,6 +4002,7 @@ window.noname_character_rank = {
 			"clan_wanghun",
 			"yue_zhoufei",
 			"ol_dingshangwan",
+			"mb_dingshangwan",
 			"ol_liwan",
 			"clan_wangmingshan",
 			"chengji",
@@ -4439,6 +4442,7 @@ window.noname_character_rank = {
 			"pot_huanjie",
 		],
 		junk: [
+			"sb_chentai",
 			"yao_yuanshu",
 			"yj_chezhou",
 			"hanxuan",

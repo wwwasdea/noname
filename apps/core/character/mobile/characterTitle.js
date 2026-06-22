@@ -1,4 +1,5 @@
 export default {
+	//mb_dingshangwan: "",
 	//re_wangji: "",
 	//re_zhoufei: "",
 	//re_yanyan: "",
