@@ -42,18 +42,18 @@ const skills = {
 		async content(event, trigger, player) {
 			if (get.is.damageCard(trigger.card)) {
 				get.info(event.name).onremove(player, event.name);
-				game.log(player, "重置了【历兵】");
+				game.log(player, "重置了技能", `#g${get.translation(event.name)}`);
 			} else {
 				if (!player.storage[event.name]) {
 					player.addSkill(event.name + "_attack");
 					player.addMark(event.name + "_attack", 1, false);
-					player.storage[event.name] = 1;
+					player.setStorage(event.name, 1, true);
 				} else if (typeof player.storage[event.name] == "number" && player.storage[event.name] == 1) {
 					const num = 1 + player.countMark(event.name + "_draw");
 					await player.draw(num);
-					player.storage[event.name] = 2;
 					player.addSkill(event.name + "_draw");
 					player.addMark(event.name + "_draw", 1, false);
+					player.setStorage(event.name, 2, true);
 				} else {
 					delete player.storage[event.name];
 					player.addSkill(event.name + "_dam");
@@ -160,18 +160,20 @@ const skills = {
 			}
 			list.push("cancel2");
 			const result = await player
-				.chooseControl(list)
-				.set("prompt", "法恩：你可以选择一项")
-				.set("ai", () => {
-					const { player, target, controls } = get.event();
-					if (get.attitude(player, target) > 0) {
-						controls.remove(controls[1]);
-					}
-					return controls.slice(0).remove("cancel2").randomGet();
+				.chooseControl({
+					controls: list,
+					prompt: "法恩：你可以选择一项",
+					ai() {
+						const { player, target, controls } = get.event();
+						if (get.attitude(player, target) > 0) {
+							controls.remove(controls[1]);
+						}
+						return controls.slice(0).remove("cancel2").randomGet();
+					},
 				})
 				.set("target", target)
 				.forResult();
-			if (typeof result.control == "string" && result.control != "cancel2") {
+			if (typeof result?.control == "string" && result.control != "cancel2") {
 				event.result = {
 					bool: true,
 					cost_data: result.control,
@@ -349,28 +351,29 @@ const skills = {
 				async cost(event, trigger, player) {
 					const list = ["对其造成一点伤害", "获得其所有“伺锋”牌"];
 					const result = await player
-						.chooseControl(list)
-						.set("prompt", "对" + get.translation(trigger.player) + "发动【伺锋】")
-						.set("ai", () => {
-							const { player, controls, target } = get.event();
-							const cards = target.getExpansions("potsifeng");
-							if (get.attitude(player, target) > 0) {
-								controls.remove("对其造成一点伤害");
-							}
-							if (cards.length >= 3) {
-								controls.remove("对其造成一点伤害");
-							}
-							return controls.slice(0).randomGet();
+						.chooseControl({
+							controls: list,
+							prompt: "对" + get.translation(trigger.player) + "发动【伺锋】",
+							ai() {
+								const { player, controls, target } = get.event();
+								const cards = target.getExpansions("potsifeng");
+								if (get.attitude(player, target) > 0) {
+									controls.remove("对其造成一点伤害");
+								}
+								if (cards.length >= 3) {
+									controls.remove("对其造成一点伤害");
+								}
+								return controls.slice(0).randomGet();
+							},
 						})
 						.set("target", trigger.player)
 						.forResult();
-					if (typeof result.index != "number") {
-						return;
+					if (typeof result?.index == "number") {
+						event.result = {
+							bool: true,
+							cost_data: result.index,
+						};
 					}
-					event.result = {
-						bool: true,
-						cost_data: result.index,
-					};
 				},
 				async content(event, trigger, player) {
 					const target = trigger.player,
@@ -399,22 +402,24 @@ const skills = {
 			const list = ["red", "black", "cancel2"].removeArray(player.getStorage(event.skill + "_round")),
 				target = trigger.player;
 			const result = await player
-				.chooseControl(list)
-				.set("prompt", get.prompt(event.skill, target))
-				.set("prompt2", "令其从牌堆中获得一张此颜色的牌")
-				.set("ai", () => {
-					const { player, controls, target } = get.event();
-					if (get.attitude(player, target) > 0) {
-						return "cancel2";
-					}
-					if (controls.includes("red")) {
-						return "red";
-					}
-					return controls.slice().remove("cancel2").randomGet();
+				.chooseControl({
+					controls: list,
+					prompt: get.prompt(event.skill, target),
+					prompt2: "令其从牌堆中获得一张此颜色的牌",
+					ai() {
+						const { player, controls, target } = get.event();
+						if (get.attitude(player, target) > 0) {
+							return "cancel2";
+						}
+						if (controls.includes("red")) {
+							return "red";
+						}
+						return controls.slice(0).remove("cancel2").randomGet();
+					},
 				})
 				.set("target", target)
 				.forResult();
-			if (typeof result.control == "string" && result.control != "cancel2") {
+			if (typeof result?.control == "string" && result.control != "cancel2") {
 				event.result = {
 					bool: true,
 					cost_data: result.control,
@@ -490,7 +495,7 @@ const skills = {
 									},
 									ai(target) {
 										const player = get.player();
-										if (get.event().cards[0].name == "du") {
+										if (get.event().cards.some(card => get.name(card) == "du")) {
 											return -get.attitude(player, target);
 										}
 										return get.attitude(player, target);

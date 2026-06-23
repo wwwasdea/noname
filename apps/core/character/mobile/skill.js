@@ -287,9 +287,7 @@ const skills = {
 			mark: {
 				charlotte: true,
 				mark: true,
-				intro: {
-					content: "防止你本回合下次受到的伤害",
-				},
+				intro: { content: "防止你本回合下次受到的伤害" },
 			},
 			effect: {
 				audio: "mbqiliu",
@@ -301,7 +299,7 @@ const skills = {
 					return event.player?.isIn() && player.getStorage("mbqiliu_effect").includes(event.player);
 				},
 				logTarget: "player",
-				content() {
+				async content(event, trigger, player) {
 					trigger.cancel();
 					player.unmarkAuto(event.name, [trigger.player]);
 					trigger.player.removeSkill("mbqiliu_mark");
@@ -355,7 +353,7 @@ const skills = {
 					return event.name != "phase" || game.phaseNumber == 0;
 				},
 				async content(event, trigger, player) {
-					const num = lib.skill.reqizhi.beginMarkCount;
+					const num = get.info("reqizhi").beginMarkCount;
 					await player.addCharge(num);
 					await game.delayx();
 				},
@@ -392,7 +390,7 @@ const skills = {
 		},
 	},
 	rejinqu: {
-		audio: "jinqu",
+		audio: 2,
 		locked: true,
 		trigger: {
 			player: ["useCardAfter", "phaseJieshuBegin"],
@@ -402,7 +400,7 @@ const skills = {
 		},
 		init(player, skill) {
 			if (!player.storage[skill]) {
-				player.storage[skill] = [0, 0];
+				player.setStorage(skill, [0, 0], true);
 			}
 		},
 		onremove: true,
@@ -411,9 +409,9 @@ const skills = {
 			name: "趋",
 			markcount(storage) {
 				storage = storage ?? [0, 0];
-				let str = storage[0];
+				let str = storage[0].toString();
 				if (storage[1] > 0) {
-					str += `/${storage[1]}`;
+					str += `/${storage[1].toString()}`;
 				}
 				return str;
 			},
@@ -429,7 +427,7 @@ const skills = {
 		async cost(event, trigger, player) {
 			if (trigger.name == "useCard") {
 				if (!player.storage[event.skill]) {
-					player.storage[event.skill] = [0, 0];
+					player.setStorage(event.skill, [0, 0], true);
 				}
 				const storage = player.storage[event.skill];
 				player.setStorage(event.skill, [storage[0] + 1, storage[1]], true);
@@ -482,9 +480,9 @@ const skills = {
 				filter(event, player) {
 					return event.name == "phase" || (event.markName == "charge" && player == _status.currentPhase);
 				},
-				content() {
+				async content(event, trigger, player) {
 					if (!player.storage.rejinqu) {
-						player.storage.rejinqu = [0, 0];
+						player.setStorage("rejinqu", [0, 0], true);
 					}
 					const storage = player.storage.rejinqu;
 					if (event.triggername == "phaseAfter") {
