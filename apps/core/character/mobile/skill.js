@@ -278,7 +278,7 @@ const skills = {
 					player.actionHistory.filter(evt => {
 						return evt.isMe && !evt.isSkipped;
 					}).length - (player == _status.currentPhase ? 1 : 0);
-				await player.draw(num);
+				await player.draw({ num: num });
 				player.addTempSkill(event.name + "_round", "roundStart");
 			}
 		},
@@ -321,7 +321,7 @@ const skills = {
 		async content(event, trigger, player) {
 			const target = event.target;
 			await player.removeCharge(1);
-			await target.draw(3);
+			await target.draw({ num: 3 });
 			player.addTempSkill(event.name + "_effect");
 			player.markAuto(event.name + "_effect", [target]);
 		},
@@ -465,7 +465,7 @@ const skills = {
 				await event.targets[0].addCharge(1);
 			} else {
 				const num = player.storage[event.name][1];
-				await player.draw(num);
+				await player.draw({ num: num });
 			}
 		},
 		group: "rejinqu_mark",
@@ -1169,11 +1169,11 @@ const skills = {
 					return player.hasMark("mbranshang");
 				},
 				async content(event, trigger, player) {
-			        await player.loseHp(player.countMark("mbranshang"));
-			        if (player.countMark("mbranshang") > 1) {
-				    	await player.loseMaxHp(2);
-			    		await player.draw(2);
-    			    }
+					await player.loseHp(player.countMark("mbranshang"));
+					if (player.countMark("mbranshang") > 1) {
+						await player.loseMaxHp(2);
+						await player.draw(2);
+					}
 				},
 			},
 		},
@@ -11299,7 +11299,7 @@ const skills = {
 	//手杀薛综
 	mbfunan: {
 		audio: "funan",
-		derivation: ["mbfunan_rewrite",],
+		derivation: ["mbfunan_rewrite"],
 		trigger: { global: ["respond", "useCard"] },
 		filter(event, player) {
 			if (!event.respondTo) {

@@ -3137,18 +3137,20 @@ const skills = {
 			list.push("选项二");
 			list.push("cancel2");
 			const result = await player
-				.chooseControl(list)
-				.set("prompt", get.prompt(event.skill, target))
-				.set("choiceList", choiceList)
-				.set("ai", () => {
-					const { player, source, controls } = get.event();
-					if (get.attitude(player, source) > 0) {
-						return "cancel2";
-					}
-					if (player.countCards("h") == source.countCards("h")) {
-						return "选项二";
-					}
-					return controls.slice(0).remove("cancel2").randomGet();
+				.chooseControl({
+					controls: list,
+					prompt: get.prompt(event.skill, target),
+					choiceList: choiceList,
+					ai() {
+						const { player, source, controls } = get.event();
+						if (get.attitude(player, source) > 0) {
+							return "cancel2";
+						}
+						if (player.countCards("h") == source.countCards("h")) {
+							return "选项二";
+						}
+						return controls.slice(0).remove("cancel2").randomGet();
+					},
 				})
 				.set("source", target)
 				.forResult();
@@ -3218,7 +3220,10 @@ const skills = {
 					const cards = result.links;
 					player.line(target);
 					const owners = cards.map(i => get.owner(i)).unique();
-					await owners[0].discard(cards).set("discarder", player);
+					await owners[0].discard({
+						cards: cards,
+						discarder: player,
+					});
 					if (get.color(cards[0]) == "black") {
 						await game.doAsyncInOrder(event.targets, fun2);
 					}
@@ -3303,8 +3308,11 @@ const skills = {
 			player.markAuto(event.name + "_round", [trigger.player]);
 			const cards = trigger.getl(trigger.player).cards2;
 			if (cards?.length) {
-				await trigger.player.gain(cards, "gain2");
-				await player.draw();
+				await trigger.player.gain({
+					cards: cards,
+					animate: "gain2",
+				});
+				await player.draw({ num: 1 });
 			}
 		},
 		subSkill: {
@@ -10420,7 +10428,7 @@ const skills = {
 				count[i] = (count[i] || 0) + 1;
 			}
 			num += Math.max(...Object.values(count));
-			await player.draw(num);
+			await player.draw({ num: num });
 		},
 		ai: {
 			order(item, player) {
@@ -10591,7 +10599,7 @@ const skills = {
 					if (player.hasCard(card => get.suit(card) == "heart" && player.canRecast(card), "h")) {
 						await player.recast(player.getCards("h", card => get.suit(card) == "heart"));
 					}
-					await player.draw(2);
+					await player.draw({ num: 2 });
 				},
 			},
 			achieve: {
@@ -10790,7 +10798,7 @@ const skills = {
 			return player == event.player || event.player.hasMark("sbjieyin_mark");
 		},
 		async content(event, trigger, player) {
-			await player.draw(2);
+			await player.draw({ num: 2 });
 			//是否有失败的使命技
 			const bool = player.hasAllHistory("useSkill", evt => {
 				const skills = [evt.skill];

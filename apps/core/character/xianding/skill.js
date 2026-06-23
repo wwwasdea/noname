@@ -31,6 +31,7 @@ const skills = {
 					selectCard: [1, Infinity],
 					complexCard: true,
 					position: "he",
+					chooseonly: true,
 					ai(card) {
 						if (card.hasGaintag("dcsbguyi_tag")) {
 							return 10 - get.value(card);
@@ -47,6 +48,7 @@ const skills = {
 			const { cards } = event,
 				types = cards.map(card => get.type2(card)).unique(),
 				suits = cards.map(card => get.suit(card)).unique();
+			await player.discard({ cards: cards, discarder: player });
 			const typeMap = {};
 			types.forEach(type => {
 				typeMap[get.translation(type)] = type;
@@ -201,9 +203,11 @@ const skills = {
 									const target = result.targets[0];
 									player.changeZhuanhuanji("dcsbjingmou");
 									player.line(target);
-									const gainEvent = target.gain(cards, "gain2");
-									gainEvent.giver = player;
-									await gainEvent;
+									await target.gain({
+										cards: cards,
+										animate: "gain2",
+										giver: player,
+									});
 								}
 								player.removeSkill(event.name);
 							});
@@ -242,28 +246,20 @@ const skills = {
 			const { targets } = event;
 			for (const target of targets.sortBySeat()) {
 				const result = await target
-					.chooseCard({
+					.chooseToRespond({
 						filterCard(card, player) {
 							if (get.name(card) !== "sha") {
 								return false;
 							}
 							return lib.filter.cardRespondable(card, player);
 						},
-						prompt2: `打出一张【杀】，否则受到${get.translation(player)}的一点伤害`,
-						position: "hs",
+						prompt: `定南：打出一张【杀】，否则受到${get.translation(player)}的一点伤害`,
 						ai(card) {
-							const { player, target } = get.event();
-							if (get.damageEffect(target, player, player)) {
-								return get.order(card);
-							}
-							return 0;
+							return 1 + Math.random();
 						},
 					})
-					.set("target", target)
 					.forResult();
-				if (result?.bool) {
-					await target.respond(result.cards, "highlight", "noOrdering");
-				} else {
+				if (!result?.bool) {
 					await target.damage();
 				}
 			}
@@ -297,28 +293,7 @@ const skills = {
 				return false;
 			}
 			const evt = event.getl(player);
-			if (!evt?.cards2?.length) {
-				return false;
-			}
-			if (event.name == "lose") {
-				for (const i in event.gaintag_map) {
-					if (event.gaintag_map[i].includes("dcsbguyi_tag")) {
-						return true;
-					}
-				}
-				return false;
-			}
-			return player.hasHistory("lose", evt2 => {
-				if (event != evt2.getParent()) {
-					return false;
-				}
-				for (const i2 in evt2.gaintag_map) {
-					if (evt2.gaintag_map[i2].includes("dcsbguyi_tag")) {
-						return true;
-					}
-				}
-				return false;
-			});
+			return evt?.cards2?.length;
 		},
 		getIndex(event, player) {
 			if (["phase", "gameDraw"].includes(event.name)) {
@@ -346,11 +321,11 @@ const skills = {
 			return num;
 		},
 		async cost(event, trigger, player) {
-			if (trigger.name == "phase") {
+			if (trigger.name != "gameDraw") {
 				event.result = {
 					bool: true,
 				};
-			} else if (trigger.name == "gameDraw") {
+			} else {
 				event.result = await player
 					.chooseCard({
 						prompt2: "选择一张手牌标记为“熠”",
@@ -361,6 +336,14 @@ const skills = {
 						},
 					})
 					.forResult();
+			}
+		},
+		async content(event, trigger, player) {
+			if (trigger.name == "phase") {
+				await player.draw({ num: 1, gaintag: ["dcsbguyi_tag"] });
+			} else if (trigger.name == "gameDraw") {
+				const { cards } = event;
+				player.addGaintag(cards, event.name + "_tag");
 			} else {
 				const num = Math.min(7, player.countMark("dcsbguyi_round") + 1);
 				const cards = get.cards(num, true);
@@ -388,37 +371,22 @@ const skills = {
 					})
 					.forResult();
 				if (result?.bool && result.moved?.length) {
-					event.result = {
-						bool: true,
-						cost_data: result.moved,
-					};
+					player.addTempSkill(event.name + "_used");
+					player.addMark(event.name + "_used", 1, false);
+					player.addTempSkill(event.name + "_round", "roundStart");
+					player.addMark(event.name + "_round", 1, false);
+					const { moved } = result;
+					const top = moved[0];
+					const gains = moved[1];
+					if (gains.length) {
+						await player.gain({
+							cards: gains,
+							animate: "gain2",
+							gaintag: ["dcsbguyi_tag"],
+						});
+					}
+					game.cardsGotoPile(top, "insert");
 				}
-			}
-		},
-		async content(event, trigger, player) {
-			if (trigger.name == "phase") {
-				const next = player.draw();
-				next.gaintag.add(event.name + "_tag");
-				await next;
-			} else if (trigger.name == "gameDraw") {
-				const { cards } = event;
-				player.addGaintag(cards, event.name + "_tag");
-			} else {
-				player.addTempSkill(event.name + "_used");
-				player.addMark(event.name + "_used", 1, false);
-				player.addTempSkill(event.name + "_round", "roundStart");
-				player.addMark(event.name + "_round", 1, false);
-				const { cost_data: moved } = event;
-				const top = moved[0];
-				const gains = moved[1];
-				top.reverse();
-				if (gains.length) {
-					const next = player.gain(gains, "gain2");
-					next.gaintag.add(event.name + "_tag");
-					await next;
-				}
-				await game.cardsGotoPile(top, "insert");
-				await game.updateRoundNumber();
 			}
 		},
 		mod: {

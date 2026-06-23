@@ -315,15 +315,12 @@ const skills = {
 					if (result?.bool && result.targets?.length) {
 						const target = result.targets[0];
 						player.line(target);
-						await target.draw();
+						await target.draw({ num: 1 });
 					}
 				}
 			}
-			const num = game
-				.filterPlayer()
-				.map(current => current.group)
-				.unique().length;
-			await player.draw(num);
+			const num = game.countGroup();
+			await player.draw({ num: num });
 		},
 	},
 	//雁翎徐晃

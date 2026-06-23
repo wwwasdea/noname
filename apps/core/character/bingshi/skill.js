@@ -50,7 +50,7 @@ const skills = {
 					player.setStorage(event.name, 1, true);
 				} else if (typeof player.storage[event.name] == "number" && player.storage[event.name] == 1) {
 					const num = 1 + player.countMark(event.name + "_draw");
-					await player.draw(num);
+					await player.draw({ num: num });
 					player.addSkill(event.name + "_draw");
 					player.addMark(event.name + "_draw", 1, false);
 					player.setStorage(event.name, 2, true);
@@ -187,7 +187,7 @@ const skills = {
 				targets: [target],
 			} = event;
 			if (link == `令${get.translation(target)}摸一张牌`) {
-				await target.draw();
+				await target.draw({ num: 1 });
 			} else {
 				if (target.countDiscardableCards(target, "he")) {
 					await target.chooseToDiscard(true, "he");
@@ -215,7 +215,7 @@ const skills = {
 				logTarget: "player",
 				async content(event, trigger, player) {
 					if (player.getStorage(event.name).includes("draw")) {
-						await trigger.player.draw();
+						await trigger.player.draw({ num: 1 });
 					}
 					if (player.getStorage(event.name).includes("discard") && trigger.player.countDiscardableCards(trigger.player, "he")) {
 						await trigger.player.chooseToDiscard(true, "he");
@@ -382,7 +382,7 @@ const skills = {
 						await target.loseToDiscardpile(cards);
 						await target.damage();
 					} else {
-						await player.gain(cards, "gain2");
+						await player.gain({ cards: cards, animate: "gain2" });
 					}
 				},
 			},
@@ -445,9 +445,11 @@ const skills = {
 						trigger.pothuilv_check = true;
 					});
 				target.addTempSkill(event.name + "_mark", "phaseUseAfter");
-				const next = target.gain(card, "gain2");
-				next.gaintag.add(event.name + "_mark");
-				await next;
+				await target.gain({
+					cards: [card],
+					animate: "gain2",
+					gaintag: ["pothuilv_mark"],
+				});
 				await target.showCards(card, `${get.translation(player)}发动了【${get.translation(event.name)}】`);
 			} else {
 				player.chat("没牌喽");
@@ -507,9 +509,11 @@ const skills = {
 							if (result?.bool && result.targets?.length) {
 								const target = result.targets[0];
 								player.line(target);
-								const gainEvent = target.gain(cards, "give");
-								gainEvent.giver = player;
-								await gainEvent;
+								await target.gain({
+									cards: cards,
+									animate: "gain2",
+									giver: player,
+								});
 							}
 						}
 					}
