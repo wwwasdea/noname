@@ -1,4 +1,10 @@
 const characters = {
+	zhuji: {
+		sex: "male",
+		group: "wu",
+		hp: 4,
+		skills: ["potjiezhu", "pothuanshi"],
+	},
 	mb_cheliji: {
 		sex: "male",
 		group: "qun",
@@ -89,12 +95,6 @@ const characters = {
 		hp: 4,
 		skills: ["mbtongwei", "mbcuguo"],
 		names: "夏侯|楙",
-	},
-	mb_shen_machao: {
-		sex: "male",
-		group: "shen",
-		hp: 4,
-		skills: ["yuli", "tingwei", "jimie"],
 	},
 	o_tadun: {
 		sex: "male",
