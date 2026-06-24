@@ -5,6 +5,7 @@ export default {
 	//re_yanyan: "",
 	//mb_gaoxiang: "",
 	//mb_cuimao: "",
+	mb_cheliji: "北境寒锋",
 	mb_zhongyao: "正楷萧曹",
 	mb_wutugu: "霸体金刚",
 	mb_chengyu: "泰山捧日",

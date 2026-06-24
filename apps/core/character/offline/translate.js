@@ -1,13 +1,34 @@
 import { lib, game, ui, get, ai, _status } from "noname";
 
 const translates = {
+	pe_huamulan: "花木兰",
+	perongbian: "戎弁",
+	perongbian_info: "锁定技，当你使用装备牌后，你随机获得一张女将牌，获得其一个技能直到你失去此牌。",
+	peliezhan: "烈瞻",
+	peliezhan_info: "你可以将一张女将牌当无距离和次数限制的基本牌或普通锦囊牌使用，然后摸两张牌。",
+	petijun: "替君",
+	petijun_info: "限定技，出牌阶段，你可以获得一名男性角色装备区里的所有牌，你与其回复所有体力;当你杀其以外的角色后，此技能视为未发动。",
+	pe_yangyuhuan: "杨玉环",
+	peyichuan: "驿传",
+	peyichuan_info: "出牌阶段限一次，你可以声明一种牌类型，所有其他角色同时选择是否交给你任意张此类型的牌，不执行的角色不能响应一号位使用牌直到游戏结束。",
+	pexiuhua: "羞花",
+	pexiuhua_info: `锁定技，当你获得其他角色的牌后，其摸等量的牌；${get.poptip("peyichuan")}结算后，你和交给你牌最多的角色各回复1点体力并摸三张牌。`,
+	pe_xiahoulan: "夏侯岚",
+	pexunji: "迅击",
+	pexunji_info: "每阶段你首次获得牌后，你可以视为使用一张无距离限制且不可被响应的基本牌。",
+	peshuangfeng: "双锋",
+	peshuangfeng_info: `回合开始时，你可以令你本回合所有阶段改为出牌/摸牌阶段并获得${get.poptip("peguiren")}/${get.poptip("peyichi")}直到回合结束。`,
+	peguiren: "归刃",
+	peguiren_info: "你造成伤害后本阶段使用牌无次数限制，然后你和一名角色各摸一张牌。",
+	peyichi: "义驰",
+	peyichi_info: "你执行摸牌阶段后，你可以令一名其他角色回复一点体力。",
 	tcmj_lishimin: "李世民",
 	tcmjpozhen: "破阵",
-    tcmjpozhen_info: `${get.poptip("rule_chihengji")}，你对其他角色造成伤害后，令其选择一项其本回合未选择的：1.你对其使用牌无次数距离限制；2.其交给你一个区域内的所有牌；3.其体力上限调整至1且失去所有技能。`,
-    tcmjtaoge: "韬戈",
-    tcmjtaoge_info: "每回合每种类别限一次，你可以将一张非装备牌当做同类别的牌使用。",
-    tcmjzhenguan: "贞观",
-    tcmjzhenguan_info: "主公技，每轮开始时或结束时，你令每种势力的一名其他角色摸一张牌，然后你摸X张牌（X为场上势力数）。",
+	tcmjpozhen_info: `${get.poptip("rule_chihengji")}，你对其他角色造成伤害后，令其选择一项其本回合未选择的：1.你对其使用牌无次数距离限制；2.其交给你一个区域内的所有牌；3.其体力上限调整至1且失去所有技能。`,
+	tcmjtaoge: "韬戈",
+	tcmjtaoge_info: "每回合每种类别限一次，你可以将一张非装备牌当做同类别的牌使用。",
+	tcmjzhenguan: "贞观",
+	tcmjzhenguan_info: "主公技，每轮开始时或结束时，你令每种势力的一名其他角色摸一张牌，然后你摸X张牌（X为场上势力数）。",
 	ylyg_zhurong: "雁翎祝融",
 	ylyg_zhurong_prefix: "雁翎",
 	ylyg_lieren: "烈刃",
@@ -2213,7 +2234,6 @@ const translates = {
 	sm_prettyDerby_info: "锁定技，你计算与其他角色的距离-1，其他角色计算与你的距离+1。",
 	sm_kuangchi: "狂驰",
 	sm_kuangchi_info: "你杀死一名角色后，可以交给其一张“赛马”代替其一张武将牌并令其复活，其胜利条件改为与你一致。",
-
 };
 
 export default translates;

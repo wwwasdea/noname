@@ -2,6 +2,120 @@ import { lib, game, ui, get, ai, _status } from "noname";
 
 /** @type { importCharacterConfig["skill"] } */
 const skills = {
+	//手杀小车------by 清风
+	mbqucheng: {
+		audio: 2,
+		forced: true,
+		mod: {
+			targetInRange(card) {
+				if (card.name == "sha") {
+					return true;
+				}
+			},
+			playerEnabled(card, player, target) {
+				const targets = [player.next, player.previous];
+				if (!card?.storage?.mbqucheng_next && !card.storage.mbqucheng_previous && !targets.includes(target) && card.name == "sha") {
+					return false;
+				}
+			},
+		},
+		trigger: { player: "useCardAfter" },
+		filter(event, player) {
+			const targets = event.targets;
+			if (!targets || targets.length != 1) {
+				return false;
+			}
+			const target = targets[0],
+				card = event.card;
+			if (card.name != "sha" || player.hasHistory("sourceDamage", evt => evt.card == card)) {
+				return false;
+			}
+			if (!card.storage?.mbqucheng_next && !card.storage.mbqucheng_previous) {
+				return [target.next, target.previous].some(t => t != player);
+			}
+			let targetx, cardx;
+			if (card.storage?.mbqucheng_next) {
+				targetx = target.next;
+				cardx = get.autoViewAs({ name: "sha", isCard: true, storage: { mbqucheng_next: true } });
+			}
+			if (card.storage?.mbqucheng_previous) {
+				targetx = target.previous;
+				cardx = get.autoViewAs({ name: "sha", isCard: true, storage: { mbqucheng_previous: true } });
+			}
+			return player != targetx && player.canUse(cardx, targetx, false);
+		},
+		async content(event, trigger, player) {
+			const card = trigger.card,
+				target = trigger.targets[0];
+			let targetx, cardx;
+			if (!card.storage.mbqucheng_next && !card.storage.mbqucheng_previous) {
+				let result;
+				if (player != target.next && player != target.previous) {
+					result = await player
+						.chooseControl({
+							controls: ["下家", "上家"],
+							prompt: "请选择驱乘的方向",
+							ai() {
+								return get.event().controls.slice(0).randomGet();
+							},
+						})
+						.forResult();
+				}
+				if (player == target.next || (typeof result?.control == "string" && result.control == "上家")) {
+					targetx = target.previous;
+					cardx = get.autoViewAs({ name: "sha", isCard: true, storage: { mbqucheng_previous: true } });
+				} else {
+					targetx = target.next;
+					cardx = get.autoViewAs({ name: "sha", isCard: true, storage: { mbqucheng_next: true } });
+				}
+			} else {
+				if (card.storage.mbqucheng_next) {
+					targetx = target.next;
+					cardx = get.autoViewAs({ name: "sha", isCard: true, storage: { mbqucheng_next: true } });
+				} else {
+					targetx = target.previous;
+					cardx = get.autoViewAs({ name: "sha", isCard: true, storage: { mbqucheng_previous: true } });
+				}
+			}
+			if (player.canUse(cardx, targetx, false)) {
+				await player.useCard(cardx, targetx, false);
+			}
+			if (trigger.addCount != false) {
+				trigger.addCount = false;
+				const stat = player.getStat("card"),
+					name = trigger.card.name;
+				if (typeof stat[name] == "number" && stat[name] > 0) {
+					stat[name]--;
+				}
+			}
+		},
+	},
+	mbqiangyong: {
+		audio: 4,
+		logAudio: index => (typeof index == "number" ? "mbqiangyong" + index + ".mp3" : 2),
+		forced: true,
+		trigger: { source: "damageBegin2" },
+		filter(event, player) {
+			return event.card?.name == "sha";
+		},
+		logTarget: "player",
+		async content(event, trigger, player) {
+			const num = player.countHistory("useCard", evt => evt.card.name == "sha");
+			if (trigger.player.countDiscardableCards(player, "he")) {
+				await player.discardPlayerCard({
+					target: trigger.player,
+					selectButton: num,
+					forced: true,
+					position: "he",
+					allowChooseAll: true,
+				});
+			}
+			if (!trigger.player.countCards("h")) {
+				player.logSkill(event.name, trigger.player, null, null, [get.rand(3, 4)]);
+				trigger.num++;
+			}
+		},
+	},
 	//手杀丁尚涴------by 清风
 	mbzhaofu: {
 		audio: 2,

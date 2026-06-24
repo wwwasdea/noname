@@ -1,6 +1,12 @@
 import { lib, game, ui, get, ai, _status } from "noname";
 
 const translates = {
+	mb_cheliji: "手杀彻里吉",
+	mb_cheliji_prefix: "手杀",
+	mbqucheng: "驱乘",
+	mbqucheng_info: "锁定技，你使用【杀】无距离限制，且不因此技能使用的【杀】只能指定上家/下家为目标；当你使用指定唯一目标的【杀】结算后，若此【杀】目标角色的上家/下家不是你且未造成伤害，此【杀】不计入次数，然后你视为对其的上家/下家使用一张普通【杀】。",
+	mbqiangyong: "羌勇",
+	mbqiangyong_info: "锁定技，你使用【杀】造成伤害时，弃置受伤角色的X张牌（X为本回合你使用【杀】的次数），然后若其没有手牌，此【杀】伤害+1。",
 	mb_dingshangwan: "手杀丁尚涴",
 	mb_dingshangwan_prefix: "手杀",
 	mbzhaofu: "照抚",

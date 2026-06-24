@@ -161,7 +161,7 @@ const skills = {
 											if (targetx == player) {
 												return !player.countCards("h", "shan");
 											} else {
-												return targetx.hp == 1 || (targetx.countCards("h") <= 2 && targetx.hp <= 2);
+												return targetx.getHp() == 1 || (targetx.countCards("h") <= 2 && targetx.getHp() <= 2);
 											}
 										} else {
 											return true;
@@ -236,6 +236,7 @@ const skills = {
 	},
 	dcsbdingnan: {
 		audio: 2,
+		audioname: ["dc_sb_zhugeliang_shadow"],
 		enable: "phaseUse",
 		usable: 1,
 		filterTarget: true,
@@ -274,6 +275,7 @@ const skills = {
 	},
 	dcsbguyi: {
 		audio: 2,
+		audioname: ["dc_sb_zhugeliang_shadow"],
 		locked: true,
 		trigger: {
 			player: "loseAfter",
