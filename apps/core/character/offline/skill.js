@@ -258,7 +258,7 @@ const skills = {
 				target,
 				forced: true,
 				position: "e",
-				selectCard: target.countGainableCards(player, "e"),
+				selectButton: target.countGainableCards(player, "e"),
 			});
 			await player.recoverTo(player.maxHp);
 			await target.recoverTo(target.maxHp);
