@@ -467,4 +467,5 @@ window.noname_character_replace = {
 	yanyan: ["yanyan", "re_yanyan"],
 	wangji: ["wangji", "re_wangji"],
 	cheliji: ["cheliji", "mb_cheliji"],
+	ns_huamulan: ["ns_huamulan", "pe_huamulan"],
 };
