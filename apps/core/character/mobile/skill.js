@@ -2628,12 +2628,18 @@ const skills = {
 
 			return;
 		},
+		init(player, skill) {
+			if (!player.storage[skill]) {
+				player.storage[skill] = 0;
+			}
+		},
 		marktext: "霆",
 		intro: {
-			name: "霆威（霆）",
-			name2: "霆",
+			name: "霆",
 			content: "mark",
-			markcount: "mark",
+			markcount(storage) {
+				return storage;
+			},
 		},
 		subSkill: {
 			fengyin: {
