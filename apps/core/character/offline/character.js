@@ -5,12 +5,6 @@ const characters = {
 		hp: 4,
 		skills: ["tcmjpozhen", "tcmjtaoge", "tcmjzhenguan"],
 	},
-	yj_huamulan: {
-		sex: "female",
-		group: "qun",
-		hp: 4,
-		skills: ["perongbian", "peliezhan", "petijun"],
-	},
 	ylyg_xuhuang: {
 		sex: "male",
 		group: "wei",
