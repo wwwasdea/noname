@@ -1,4 +1,23 @@
 const characters = {
+	pe_huamulan: {
+		sex: "female",
+		group: "qun",
+		hp: 4,
+		skills: ["perongbian", "peliezhan", "petijun"],
+	},
+	pe_yangyuhuan: {
+		sex: "female",
+		group: "qun",
+		hp: 3,
+		skills: ["peyichuan", "pexiuhua"],
+	},
+	pe_xiahoulan: {
+		sex: "female",
+		group: "shu",
+		hp: 3,
+		skills: ["pexunji", "peshuangfeng"],
+		names: "夏侯|岚",
+	},
 	tcmj_lishimin: {
 		sex: "male",
 		group: "qun",
@@ -1104,7 +1123,8 @@ const characters = {
 		hp: 5,
 		skills: ["psxiaofan", "psjiaohu", "psquanpan", "pshuoluan"],
 		//doubleGroup: ["qun", "shu", "wu"],
-	}, hm_shen_zhangjiao: {
+	}, 
+	hm_shen_zhangjiao: {
 		sex: "male",
 		group: "shen",
 		hp: 4,
