@@ -1,17 +1,17 @@
 const characters = {
-	pe_huamulan: {
+	yj_huamulan: {
 		sex: "female",
 		group: "qun",
 		hp: 4,
 		skills: ["perongbian", "peliezhan", "petijun"],
 	},
-	pe_yangyuhuan: {
+	yj_yangyuhuan: {
 		sex: "female",
 		group: "qun",
 		hp: 3,
 		skills: ["peyichuan", "pexiuhua"],
 	},
-	pe_xiahoulan: {
+	yj_xiahoulan: {
 		sex: "female",
 		group: "shu",
 		hp: 3,
