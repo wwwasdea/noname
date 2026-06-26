@@ -2325,26 +2325,9 @@ const skills = {
 		},
 	},
 	tingwei: {
-		logTarget: "targets",
 		async content(event, trigger, player) {
-			player.addMark("tingwei", 4);
-
-			const target = event.targets[0];
-
 			const result = await target
 				.chooseButton({
-					createDialog: [
-						"霆威：请选择任意项，若点击“取消”，则你横置",
-						[
-							[
-								["fengyin", "非锁定技失效至下个回合结束"],
-								["equip", `交给${get.translation(player)}一张装备牌`],
-								["damage", `${get.translation(trigger.card)}对你造成伤害+1`],
-								["discard", "随机弃一张牌"],
-							],
-							"textbutton",
-						],
-					],
 					filterButton(button, player) {
 						const source = get.event().source;
 						const link = button.link;
