@@ -2325,6 +2325,17 @@ const skills = {
 		},
 	},
 	tingwei: {
+		audio: 4,
+		trigger: { player: "useCardToPlayered" },
+		filter(event) {
+			return event.isFirstTarget && event.card?.name === "sha";
+		},
+		logAudio(event) {
+			if (typeof event == "number") {
+				return `tingwei${event}.mp3`;
+			}
+			return 2;
+		},
 		async cost(event, trigger, player) {
 			event.result = await player
 				.chooseTarget({
