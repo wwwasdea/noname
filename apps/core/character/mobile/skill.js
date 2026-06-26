@@ -2633,6 +2633,7 @@ const skills = {
 				player.storage[skill] = 0;
 			}
 		},
+		mark: true,
 		marktext: "霆",
 		intro: {
 			name: "霆",
