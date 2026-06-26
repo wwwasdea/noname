@@ -2636,7 +2636,7 @@ const skills = {
 		marktext: "霆",
 		intro: {
 			name: "霆",
-			content: "mark",
+			content: "当前拥有#个“霆”标记",
 			markcount(storage) {
 				return storage;
 			},
