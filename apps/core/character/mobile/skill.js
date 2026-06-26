@@ -1674,24 +1674,36 @@ const skills = {
 			const num2 = trigger.source.countCards("h");
 			if (num1 > num2) {
 				event.result = await player
-					.chooseToDiscard(get.prompt(event.skill, trigger.source), "弃置至少" + (num2 + 1) + "张手牌并对其造成一点伤害", "h", [num2 + 1, Infinity])
-					.set("ai", card => {
-						const trigger = get.event().getTrigger();
-						const player = get.player();
-						if (ui.selected.cards.length >= _status.event.num) {
+					.chooseToDiscard({
+						prompt: get.prompt(event.skill, trigger.source),
+						prompt2: "弃置至少" + (num2 + 1) + "张手牌并对其造成一点伤害",
+						selectCard: [num2 + 1, Infinity],
+						position: "h",
+						complexCard: true,
+						chooseonly: true,
+						ai(card) {
+							const trigger = get.event().getTrigger();
+							const { player, num } = get.event();
+							if (ui.selected.cards.length >= num) {
+								return -1;
+							}
+							if (get.damageEffect(trigger.source, player, player) > 0 && (get.value(card, player) < 0 || num <= 2)) {
+								return 8 - get.value(card);
+							}
 							return -1;
-						}
-						if (get.damageEffect(trigger.source, player, player) > 0 && (get.value(card, player) < 0 || get.event().num <= 2)) {
-							return 8 - get.value(card);
-						}
-						return -1;
+						},
 					})
 					.set("num", num2 + 1)
 					.forResult();
 			} else {
 				event.result = await player
-					.chooseBool(get.prompt(event.skill, trigger.source), "摸" + Math.min(5, num2 - num1) + "张牌")
-					.set("ai", () => 1)
+					.chooseBool({
+						prompt: get.prompt(event.skill, trigger.source),
+						prompt2: "摸" + Math.min(5, num2 - num1) + "张牌",
+						ai() {
+							return 1;
+						},
+					})
 					.forResult();
 			}
 		},
