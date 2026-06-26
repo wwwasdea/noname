@@ -5,24 +5,11 @@ const characters = {
 		hp: 4,
 		skills: ["tcmjpozhen", "tcmjtaoge", "tcmjzhenguan"],
 	},
-	pe_huamulan: {
+	yj_huamulan: {
 		sex: "female",
 		group: "qun",
 		hp: 4,
 		skills: ["perongbian", "peliezhan", "petijun"],
-	},
-	pe_yangyuhuan: {
-		sex: "female",
-		group: "qun",
-		hp: 3,
-		skills: ["peyichuan", "pexiuhua"],
-	},
-	pe_xiahoulan: {
-		sex: "female",
-		group: "shu",
-		hp: 3,
-		skills: ["pexunji", "peshuangfeng"],
-		names: "夏侯|岚",
 	},
 	ylyg_xuhuang: {
 		sex: "male",
