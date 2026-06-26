@@ -1,4 +1,11 @@
 const characters = {
+	pe_xiahoulan: {
+		sex: "female",
+		group: "shu",
+		hp: 3,
+		skills: ["pexunji", "peshuangfeng"],
+		names: "夏侯|岚",
+	},
 	tcmj_lishimin: {
 		sex: "male",
 		group: "qun",
