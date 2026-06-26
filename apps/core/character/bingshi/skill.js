@@ -121,9 +121,9 @@ const skills = {
 			if (player.hasUseTarget(card, false, false)) {
 				await player
 					.chooseUseTarget({
-						card, 
-						forced: true, 
-						addCount: false, 
+						card,
+						forced: true,
+						addCount: false,
 						nodistance: true,
 					})
 					.set("oncard", () => {
@@ -131,8 +131,7 @@ const skills = {
 						const targets = game.filterPlayer(current => current.countCards("h") <= player.countCards("h"));
 						event.directHit.addArray(targets);
 					})
-					.set("logSkill", event.name)
-					.forResult();
+					.set("logSkill", event.name);
 			}
 		},
 	},
