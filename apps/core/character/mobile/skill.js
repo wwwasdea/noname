@@ -2741,6 +2741,42 @@ const skills = {
 			},
 		},
 	},
+	jimie: {
+		audio: 4,
+		trigger: { player: "phaseUseEnd" },
+		limited: true,
+		skillAnimation: true,
+		filter(_event, player) {
+			return player.countMark("tingwei") >= 8;
+		},
+		logAudio(event) {
+			if (typeof event == "number") {
+				return `jimie${event}.mp3`;
+			}
+			return 2;
+		},
+		async cost(event, trigger, player) {
+			event.result = await player
+				.chooseTarget({
+					prompt: get.prompt(event.skill),
+					prompt2: "弃8枚“霆”标记，对一名角色造成等于其体力上限的伤害",
+					ai(target) {
+						const player = get.player();
+						return get.damageEffect(target, player, player);
+					},
+				})
+				.forResult();
+		},
+		async content(event, trigger, player) {
+			player.awakenSkill("jimie");
+			player.removeMark("tingwei", 8);
+			const target = event.targets[0];
+			await target.damage({
+				num: target.maxHp,
+			});
+			player.setStorage("yuli", [], true);
+		},
+	},
 	// OP蹋顿
 	youlve: {
 		audio: 2,
