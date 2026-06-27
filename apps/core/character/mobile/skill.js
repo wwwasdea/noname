@@ -78,7 +78,7 @@ const skills = {
 				}
 			}
 			if (player.canUse(cardx, targetx, false)) {
-				await player.useCard(cardx, targetx, false);
+				await player.useCard(cardx, targetx);
 			}
 			if (trigger.addCount != false) {
 				trigger.addCount = false;
