@@ -30,7 +30,7 @@ const skills = {
 			if (card.name != "sha" || player.hasHistory("sourceDamage", evt => evt.card == card)) {
 				return false;
 			}
-			if (!card.storage?.mbqucheng_next && !card.storage.mbqucheng_previous) {
+			if (!card.storage?.mbqucheng_next && !card.storage?.mbqucheng_previous) {
 				return [target.next, target.previous].some(t => t != player);
 			}
 			let targetx, cardx;
@@ -48,7 +48,7 @@ const skills = {
 			const card = trigger.card,
 				target = trigger.targets[0];
 			let targetx, cardx;
-			if (!card.storage.mbqucheng_next && !card.storage.mbqucheng_previous) {
+			if (!card.storage?.mbqucheng_next && !card.storage?.mbqucheng_previous) {
 				let result;
 				if (player != target.next && player != target.previous) {
 					result = await player
