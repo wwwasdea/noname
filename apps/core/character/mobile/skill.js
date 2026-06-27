@@ -14,7 +14,7 @@ const skills = {
 			},
 			playerEnabled(card, player, target) {
 				const targets = [player.next, player.previous];
-				if (!card?.storage?.mbqucheng_next && !card.storage.mbqucheng_previous && !targets.includes(target) && card.name == "sha") {
+				if (!card?.storage?.mbqucheng_next && !card?.storage?.mbqucheng_previous && !targets.includes(target) && card.name == "sha") {
 					return false;
 				}
 			},
