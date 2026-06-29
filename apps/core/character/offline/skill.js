@@ -7740,7 +7740,6 @@ const skills = {
 				if (!trigger._finished) {
 					trigger.finish();
 					trigger._finished = true;
-					trigger.untrigger(true);
 					trigger._triggered = 5;
 					if (!lib.onround.includes(get.info("sm_xianxing").onRound)) {
 						lib.onround.push(get.info("sm_xianxing").onRound);
@@ -18176,7 +18175,6 @@ const skills = {
 				let first = game.findPlayer(current => current.getSeatNum() == 1) || trigger.player;
 				trigger.finish();
 				trigger._finished = true;
-				trigger.untrigger(true);
 				trigger._triggered = 5;
 				const evtx = first.insertPhase();
 				delete evtx.skill;
@@ -18362,7 +18360,6 @@ const skills = {
 			if (trigger.name === "phase" && newzhu != zhu && !trigger._finished) {
 				trigger.finish();
 				trigger._finished = true;
-				trigger.untrigger(true);
 				trigger._triggered = 5;
 				const evt = newzhu.insertPhase();
 				delete evt.skill;
@@ -34103,7 +34100,7 @@ const skills = {
 				popup: false,
 				async content(event, trigger, player) {
 					const result = (await player.draw(2).forResult()).cards;
-					if (Array.isArray(result) && result.length) {
+					if (get.itemtype(result) == "cards") {
 						player.addTempSkill("jdlongdan_mark", ["phaseChange", "phaseAfter"]);
 					}
 				},
@@ -40076,15 +40073,15 @@ const skills = {
 		},
 		content() {
 			"step 0";
-			var evt = trigger.getParent("phaseUse");
+			const evt = trigger.getParent("phaseUse");
 			if (evt && evt.name == "phaseUse") {
 				evt.skipped = true;
 			}
-			var evt = trigger.getParent("phase");
-			if (evt && evt.name == "phase") {
-				game.log(evt.player, "结束了回合");
-				evt.finish();
-				evt.untrigger(true);
+			const evtx = trigger.getParent("phase");
+			if (evtx) {
+				game.log(evtx.player, "结束了回合");
+				evtx.num = evtx.phaseList.length;
+				evtx.goto(11);
 			}
 			_status._pszhonghu = player;
 		},
@@ -41249,7 +41246,6 @@ const skills = {
 			player.line(trigger.player, "green");
 			trigger.player.draw();
 			var evt = trigger.getParent();
-			evt.targets.length = 0;
 			evt.all_excluded = true;
 			game.log(evt.card, "被无效了");
 		},
