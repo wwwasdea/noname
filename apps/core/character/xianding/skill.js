@@ -98,16 +98,7 @@ const skills = {
 			player.addTempSkill(event.name + "_used");
 			player.markAuto(event.name + "_used", [trigger.name]);
 			if (trigger.name == "useCard") {
-				const cards = [];
-				for (let i = 0; i < 2; i++) {
-					const card = get.cardPile2(card => get.is.damageCard(card) && !cards.includes(card));
-					if (card) {
-						cards.push(card);
-					}
-				}
-				if (cards.length) {
-					await player.gain({ cards, animate: "draw" });
-				}
+				await player.draw({ num: 2 });
 				await player
 					.chooseToUse({
 						prompt: `威势：是否对${get.translation(trigger.player)}使用一张杀？`,
