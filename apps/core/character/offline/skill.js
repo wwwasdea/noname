@@ -1,4 +1,5 @@
 import { lib, game, ui, get, ai, _status } from "noname";
+import html from "dedent";
 
 /** @type { importCharacterConfig["skill"] } */
 const skills = {
@@ -8,37 +9,35 @@ const skills = {
 		forced: true,
 		trigger: { player: "useCardAfter" },
 		filter(event, player) {
-			return get.type(event.card) == "equip";
+			return get.type(event.card) === "equip";
 		},
 		async content(event, trigger, player) {
 			if (!_status.characterlist) {
 				game.initCharacterList();
 			}
 			_status.characterlist.randomSort();
-			const list = [];
-			for (const i of _status.characterlist) {
-				if (get.character(i, 0) == "female") {
-					list.push(i);
-				}
-			}
+			const list = _status.characterlist.filter(character => get.character(character, 0) === "female");
 			if (!list.length) {
 				player.popup("没喽");
 				return;
 			}
 			const name = list.randomGet();
 			get.info(event.name).addVisitors([name], player);
-			const skills = get.character(name, 3).filter(skill => {
-				return !player.hasSkill(skill, null, null, false);
-			});
+			const skills = get.character(name).skills.filter(skill => !player.hasSkill(skill, null, null, false));
 			if (skills.length) {
-				const list = [];
-				for (const skill of skills) {
-					list.push([skill, `<div class="popup text" style="width:calc(100% - 10px);display:inline-block"><div class="skill">【` + get.translation(skill) + "】</div><div>" + lib.translate[skill + "_info"] + "</div></div>"]);
-				}
+				const list2 = skills.map(skill => [
+					skill,
+					html`
+						<div class="popup text" style="width:calc(100% - 10px);display:inline-block">
+							<div class="skill">【${get.translation(skill)}】</div>
+							<div>${lib.translate[skill + "_info"]}</div>
+						</div>
+					`,
+				]);
 				const result = await player
 					.chooseButton({
 						forced: true,
-						createDialog: ["戎弁：选择获得一个技能", [list, "textbutton"]],
+						createDialog: ["戎弁：选择获得一个技能", [list2, "textbutton"]],
 						ai(button) {
 							return 1 + Math.random();
 						},
@@ -55,11 +54,11 @@ const skills = {
 			_status.characterlist.removeArray(characters);
 			game.log(player, "将", "#y" + get.translation(characters), "加入了", "#g“戎弁”");
 			game.broadcastAll(
-				function (player, characters) {
+				(player, characters) => {
 					player.tempname.addArray(characters);
 					player.$draw(
-						characters.map(function (name) {
-							var cardname = "huashen_card_" + name;
+						characters.map(name => {
+							const cardname = "huashen_card_" + name;
 							lib.card[cardname] = {
 								fullimage: true,
 								image: "character:" + name,
@@ -121,7 +120,7 @@ const skills = {
 					player,
 					event
 				);
-			}).length;
+			}).length > 0;
 		},
 		chooseButton: {
 			dialog(event, player) {
@@ -189,7 +188,7 @@ const skills = {
 							get.info("perongbian").removeVisitors(result.links, player);
 							player
 								.when("useCardAfter")
-								.filter(evt => evt.getParent() == event.getParent())
+								.filter(evt => evt.getParent() === event.getParent())
 								.step(async (event, trigger, player) => {
 									await player.draw({ num: 2 });
 									player.removeSkill(event.name);
@@ -249,16 +248,17 @@ const skills = {
 			return game.hasPlayer(current => get.info("petijun").filterTarget(null, player, current));
 		},
 		filterTarget(card, player, target) {
-			return target.hasSex("male") && target.countGainableCards(player, "e");
+			return target.hasSex("male") && target.hasGainableCards(player, "e");
 		},
 		async content(event, trigger, player) {
 			const { target } = event;
 			player.awakenSkill(event.name);
-			await player.gainPlayerCard({
-				target,
-				forced: true,
-				position: "e",
-				selectButton: target.countGainableCards(player, "e"),
+			const cards = target.getGainableCards(player, "e");
+			await player.gain({
+				cards,
+				source: target,
+				animate: "giveAuto",
+				bySelf: true,
 			});
 			await player.recoverTo(player.maxHp);
 			await target.recoverTo(target.maxHp);
@@ -270,7 +270,7 @@ const skills = {
 			result: {
 				player: 1,
 				target(player, target) {
-					if (game.hasPlayer(current => get.attitude(current, player) < 0 && current.countGainableCards(player, "e") && current.getDamagedHp() < 2)) {
+					if (game.hasPlayer(current => get.attitude(current, player) < 0 && current.hasGainableCards(player, "e") && current.getDamagedHp() < 2)) {
 						return -target.countGainableCards(player, "e") / Math.min(1, target.getDamagedHp());
 					}
 					return target.countGainableCards(player, "e");
@@ -303,7 +303,7 @@ const skills = {
 		enable: "phaseUse",
 		usable: 1,
 		filter(event, player) {
-			return game.hasPlayer(current => current != player);
+			return game.hasPlayer(current => current !== player);
 		},
 		chooseButton: {
 			dialog(event, player) {
@@ -321,15 +321,15 @@ const skills = {
 					control: result.control,
 					async content(event, trigger, player) {
 						const { control: type } = get.info(event.name);
-						const targets = game.filterPlayer(current => current != player).sortBySeat();
+						const targets = game.filterPlayer(current => current === player).sortBySeat();
 						player.line(targets);
 						const map = await game.chooseAnyOL(targets, get.info("peyichuan").chooseToGive, [player, type]).forResult();
 						if (!map.size) {
 							return;
 						}
 						const cards = [];
-						let num = 0,
-							gainMax = [];
+						let num = 0;
+						const gainMax = [];
 						for (const target of Array.from(map.keys())) {
 							const result = map.get(target);
 							if (result?.bool && result.cards?.length) {
@@ -337,7 +337,7 @@ const skills = {
 								if (result.cards.length >= num) {
 									if (result.cards.length > num) {
 										num = result.cards.length;
-										gainMax = [];
+										gainMax.length = 0;
 									}
 									gainMax.push(target);
 								}
@@ -364,7 +364,7 @@ const skills = {
 				prompt: `驿传：是否交给${get.translation(player)}任意张${get.translation(type)}牌`,
 				position: "he",
 				filterCard(card) {
-					return get.type2(card) == get.event().type;
+					return get.type2(card) === get.event().type;
 				},
 				selectCard: [1, Infinity],
 				allowChooseAll: true,
@@ -400,9 +400,9 @@ const skills = {
 				},
 				trigger: { global: "useCard" },
 				filter(event, player) {
-					return event.player.getSeatNum() == 1;
+					return event.player.getSeatNum() === 1;
 				},
-				content() {
+				async content(event, trigger, player) {
 					trigger.directHit.add(player);
 				},
 			},
@@ -416,38 +416,38 @@ const skills = {
 			global: "loseAsyncAfter",
 		},
 		filter(event, player) {
-			if (event.name == "PeyichuanAfter") {
-				return event.targets?.length;
+			if (event.name === "PeyichuanAfter") {
+				return event.targets?.length > 0;
 			}
 			return game.hasPlayer(current => {
-				if (current == player) {
+				if (current === player) {
 					return false;
 				}
 				return event.getl?.(current)?.cards2?.some(card => event.getg?.(player)?.includes(card));
 			});
 		},
 		getIndex(event, player) {
-			if (event.name == "PeyichuanAfter") {
+			if (event.name === "PeyichuanAfter") {
 				return 1;
 			}
-			if (event.name == "loseAsync" && event.type != "gain") {
+			if (event.name === "loseAsync" && event.type !== "gain") {
 				return [];
 			}
 			return game.filterPlayer(current => {
-				if (current == player) {
+				if (current === player) {
 					return false;
 				}
 				return event.getl?.(current)?.cards2?.some(card => event.getg?.(player)?.includes(card));
 			});
 		},
 		logTarget(event, player, name, target) {
-			if (event.name == "PeyichuanAfter") {
+			if (event.name === "PeyichuanAfter") {
 				return event.targets.sortBySeat();
 			}
 			return target;
 		},
 		async content(event, trigger, player) {
-			if (trigger.name == "PeyichuanAfter") {
+			if (trigger.name === "PeyichuanAfter") {
 				await game.doAsyncInOrder(trigger.targets.concat([player]), async target => {
 					await target.recover();
 					await target.draw({ num: 3 });
@@ -469,11 +469,11 @@ const skills = {
 			global: "loseAsyncAfter",
 		},
 		filter(event, player) {
-			if (player != _status.currentPhase || !event.getg?.(player)?.length) {
+			if (player !== _status.currentPhase || !event.getg?.(player)?.length) {
 				return false;
 			}
 			return lib.phaseName.some(phase => {
-				return player.getHistory("gain", evt => evt.getParent(phase) == event.getParent(phase)).indexOf(event) == 0;
+				return player.getHistory("gain", evt => evt.getParent(phase) === event.getParent(phase)).indexOf(event) === 0;
 			});
 		},
 		async cost(event, trigger, player) {
@@ -550,7 +550,7 @@ const skills = {
 					},
 				})
 				.forResult();
-			if (typeof result?.control == "string" && result.control != "cancel2") {
+			if (typeof result?.control === "string" && result.control !== "cancel2") {
 				event.result = {
 					bool: true,
 					cost_data: result.control,
@@ -568,7 +568,7 @@ const skills = {
 				}
 				num++;
 			}
-			player.addTempSkills(phase == "phaseDraw" ? "peyichi" : "peguiren");
+			player.addTempSkills(phase === "phaseDraw" ? "peyichi" : "peguiren");
 		},
 	},
 	peguiren: {
@@ -609,7 +609,7 @@ const skills = {
 		audio: 2,
 		trigger: { player: "phaseDrawEnd" },
 		filter(event, player) {
-			return game.hasPlayer(current => current != player && current.isDamaged());
+			return game.hasPlayer(current => current !== player && current.isDamaged());
 		},
 		async cost(event, trigger, player) {
 			event.result = await player
@@ -617,7 +617,7 @@ const skills = {
 					prompt: get.prompt(event.skill),
 					prompt2: "选择一名其他角色令其回复一点体力",
 					filterTarget(card, player, target) {
-						return target != player && target.isDamaged();
+						return target !== player && target.isDamaged();
 					},
 					ai(target) {
 						const player = get.player();
