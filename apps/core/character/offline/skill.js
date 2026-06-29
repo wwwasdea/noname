@@ -321,7 +321,7 @@ const skills = {
 					control: result.control,
 					async content(event, trigger, player) {
 						const { control: type } = get.info(event.name);
-						const targets = game.filterPlayer(current => current === player).sortBySeat();
+						const targets = game.filterPlayer(current => current !== player).sortBySeat();
 						player.line(targets);
 						const map = await game.chooseAnyOL(targets, get.info("peyichuan").chooseToGive, [player, type]).forResult();
 						if (!map.size) {
