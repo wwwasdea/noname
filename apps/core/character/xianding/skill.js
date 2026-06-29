@@ -237,6 +237,7 @@ const skills = {
 					multiline: true,
 					log: false,
 					async precontent(event, trigger, player) {
+						event.getParent().addCount = false;
 						const { cards, targets } = event.result;
 						await player.modedDiscard({ cards });
 						player.logSkill("dcsbjuao", targets);
@@ -288,7 +289,7 @@ const skills = {
 				filter(event, player) {
 					return event.card.name == "sha" || get.type(event.card) == "trick";
 				},
-				content() {
+				async content(event, trigger, player) {
 					if (trigger.addCount != false) {
 						trigger.addCount = false;
 						const stat = player.getStat("card"),
