@@ -620,7 +620,7 @@ const skills = {
 					},
 					ai(target) {
 						const player = get.player();
-						return get.attitude(player, target) / Math.min(1, target.getHp());
+						return get.recoverEffect(target, player, player);
 					},
 				})
 				.forResult();
