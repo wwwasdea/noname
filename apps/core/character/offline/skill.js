@@ -191,7 +191,6 @@ const skills = {
 								.filter(evt => evt.getParent() === event.getParent())
 								.step(async (event, trigger, player) => {
 									await player.draw({ num: 2 });
-									player.removeSkill(event.name);
 								});
 						}
 					},

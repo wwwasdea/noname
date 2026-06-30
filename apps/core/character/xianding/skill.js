@@ -44,7 +44,6 @@ const skills = {
 					player.when("roundStart").step(async (event, trigger, player) => {
 						player.setStorage("dcsbguanwu_mark", Math.floor(player.countRoundHistory("useCard", evt => evt.card.name === "sha") / 2), true);
 						player.unmarkSkill("dcsbguanwu_mark");
-						player.removeSkill(event.name);
 					});
 				},
 			},
@@ -243,7 +242,6 @@ const skills = {
 									target.addSkill("dcsbjuao_effect");
 									target.markAuto("dcsbjuao_effect", [player]);
 								}
-								player.removeSkill(event.name);
 							});
 					},
 				};
@@ -726,7 +724,6 @@ const skills = {
 										giver: player,
 									});
 								}
-								player.removeSkill(event.name);
 							});
 					}
 				},
