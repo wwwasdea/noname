@@ -1,6 +1,19 @@
 import { lib, game, ui, get, ai, _status } from "noname";
 
 const translates = {
+	pe_baiqi: "白起",
+	pewuan: "武安",
+	pewuan_info: "锁定技，你造成伤害后，你造成的伤害永久+1，且受到你伤害的角色本回合所有非锁定技失效，你对其使用牌无距离次数限制。",
+	peshashen: "杀神",
+	peshashen_info: "锁定技，当你令一名其他角色进入濒死状态时，其直接死亡然后你于本回合结束后执行一个额外的回合。",
+	pe_liuhui: "PE刘徽",
+	pe_liuhui_prefix: "PE",
+	pejieshu: "解术",
+	pejieshu_info: "当你使用牌指定目标结算后，你可以获得之且此牌本轮不能指定相同目标，然后你本回合使用此牌无距离限制且不能被【解术】获得。",
+	pegeyuan: "割圆",
+	pegeyuan_info: "锁定技，若你使用“解术”牌指定的连续两个目标与你的距离：1.不同：你弃两张牌；2.相同，你摸两张牌。然后重置“割圆”的目标。",
+	pegusuan: "股算",
+	pegusuan_info: "觉醒技，当“割圆”指定过三组角色完全不同的目标且你因此弃置的牌少于四张时，你摸五张牌并选择两名其他角色与你的距离互相为1。若如此做，你对距离1以内的角色使用牌无次数限制。",
 	pe_huamulan: "花木兰",
 	perongbian: "戎弁",
 	perongbian_info: "锁定技，当你使用装备牌后，你随机获得一张女将牌，获得其一个技能直到你失去此牌。",
@@ -24,11 +37,11 @@ const translates = {
 	peyichi_info: "你执行摸牌阶段后，你可以令一名其他角色回复一点体力。",
 	tcmj_lishimin: "李世民",
 	tcmjpozhen: "破阵",
-    tcmjpozhen_info: `${get.poptip("rule_chihengji")}，你对其他角色造成伤害后，令其选择一项其本回合未选择的：1.你对其使用牌无次数距离限制；2.其交给你一个区域内的所有牌；3.其体力上限调整至1且失去所有技能。`,
-    tcmjtaoge: "韬戈",
-    tcmjtaoge_info: "每回合每种类别限一次，你可以将一张非装备牌当做同类别的牌使用。",
-    tcmjzhenguan: "贞观",
-    tcmjzhenguan_info: "主公技，每轮开始时或结束时，你令每种势力的一名其他角色摸一张牌，然后你摸X张牌（X为场上势力数）。",
+	tcmjpozhen_info: `${get.poptip("rule_chihengji")}，你对其他角色造成伤害后，令其选择一项其本回合未选择的：1.你对其使用牌无次数距离限制；2.其交给你一个区域内的所有牌；3.其体力上限调整至1且失去所有技能。`,
+	tcmjtaoge: "韬戈",
+	tcmjtaoge_info: "每回合每种类别限一次，你可以将一张非装备牌当做同类别的牌使用。",
+	tcmjzhenguan: "贞观",
+	tcmjzhenguan_info: "主公技，每轮开始时或结束时，你令每种势力的一名其他角色摸一张牌，然后你摸X张牌（X为场上势力数）。",
 	ylyg_zhurong: "雁翎祝融",
 	ylyg_zhurong_prefix: "雁翎",
 	ylyg_lieren: "烈刃",
@@ -2234,7 +2247,6 @@ const translates = {
 	sm_prettyDerby_info: "锁定技，你计算与其他角色的距离-1，其他角色计算与你的距离+1。",
 	sm_kuangchi: "狂驰",
 	sm_kuangchi_info: "你杀死一名角色后，可以交给其一张“赛马”代替其一张武将牌并令其复活，其胜利条件改为与你一致。",
-
 };
 
 export default translates;

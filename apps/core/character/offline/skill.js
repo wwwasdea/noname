@@ -3,6 +3,324 @@ import html from "dedent";
 
 /** @type { importCharacterConfig["skill"] } */
 const skills = {
+	//PE刘徽------by 清风
+	pejieshu: {
+		audio: "dcjieshu",
+		locked: false,
+		mod: {
+			aiOrder(player, card, num) {
+				if (get.itemtype(card) == "card" && card.hasGaintag("pejieshu_tag")) {
+					return num + 0.1;
+				}
+			},
+			aiValue(player, card, num) {
+				if (get.itemtype(card) == "card" && card.hasGaintag("pejieshu_tag")) {
+					return num * 1.1;
+				}
+			},
+			aiUseful() {
+				return lib.skill.pejieshu.mod.aiValue.apply(this, arguments);
+			},
+		},
+		trigger: { player: "useCardToPlayered" },
+		onremove(player, skill) {
+			player.removeGaintag(skill + "_tag");
+		},
+		check(event, player) {
+			return get.type(event.card) != "equip";
+		},
+		filter(event, player) {
+			const cards = player
+				.getHistory("lose", evt => {
+					return evt.getParent() == event.getParent() && evt.cards2?.length && Object.values(evt.gaintag_map).flat().includes("pejieshu_tag");
+				})
+				.map(evt => evt.cards2)
+				.reduce((a, b) => b.addArray(a), []);
+			return event.cards?.filterInD("od")?.some(card => !cards.includes(card));
+		},
+		prompt2(event, player) {
+			const cards = player
+				.getHistory("lose", evt => {
+					return evt.getParent() == event.getParent() && evt.cards2?.length && Object.values(evt.gaintag_map).flat().includes("pejieshu_tag");
+				})
+				.map(evt => evt.cards2)
+				.reduce((a, b) => b.addArray(a), []);
+			return `获得${get.translation(event.cards?.filterInD("od")?.filter(card => !cards.includes(card)))}`;
+		},
+		async content(event, trigger, player) {
+			const cardx = player
+				.getHistory("lose", evt => {
+					return evt.getParent() == trigger.getParent() && evt.cards2?.length && Object.values(evt.gaintag_map).flat().includes("pejieshu_tag");
+				})
+				.map(evt => evt.cards2)
+				.reduce((a, b) => b.addArray(a), []);
+			const cards = trigger.cards?.filterInD("od")?.filter(card => !cardx.includes(card));
+			const targets = trigger.targets;
+			await player.gain({ cards, animate: "gain2", gaintag: ["pejieshu_tag"] });
+			player.addTempSkill(event.name + "_effect2", "roundStart");
+			cards.forEach(card => {
+				player.markAuto(event.name + "_effect2", [[card, targets]]);
+			});
+			player.addTempSkill(event.name + "_effect");
+			player.markAuto(event.name + "_effect", cards);
+		},
+		subSkill: {
+			tag: {},
+			effect: {
+				charlotte: true,
+				onremove: true,
+				mod: {
+					targetInRange(card, player) {
+						if ([card].concat(card.cards || []).some(cardx => get.itemtype(cardx) === "card" && player.getStorage("pejieshu_effect").includes(cardx))) {
+							return true;
+						}
+					},
+				},
+			},
+			effect2: {
+				charlotte: true,
+				onremove: true,
+				//感谢戏佬qwq
+				mod: {
+					playerEnabled(card, player, target) {
+						if ([card].concat(card.cards || []).some(cardx => get.itemtype(cardx) === "card" && player.getStorage("pejieshu_effect2").some(([cardxx, targets]) => targets.includes(target) && cardx == cardxx))) {
+							return false;
+						}
+					},
+				},
+			},
+		},
+	},
+	pegeyuan: {
+		audio: "dcgeyuan",
+		forced: true,
+		init(player, skill) {
+			player.addSkill(skill + "_mark");
+		},
+		onremove(player, skill) {
+			player.removeSkill(skill + "_mark");
+		},
+		trigger: { player: "useCardToPlayer" },
+		filter(event, player) {
+			return (
+				player.storage.pegeyuan_mark &&
+				player.hasHistory("lose", evt => {
+					return evt.getParent() == event.getParent() && evt.cards2?.length && Object.values(evt.gaintag_map).flat().includes("pejieshu_tag");
+				})
+			);
+		},
+		async content(event, trigger, player) {
+			const target = trigger.target;
+			if (get.distance(player, target) != get.distance(player, player.storage.pegeyuan_mark) && player.hasDiscardableCards(player, "he")) {
+				await player.chooseToDiscard({ forced: true, position: "he", selectCard: 2 });
+			} else {
+				await player.draw(2);
+			}
+			if (!player.getStorage(event.name).some(i => i.every(item => item === target && item === player.storage.pegeyuan_mark))) {
+				player.markAuto(event.name, [[target, player.storage.pegeyuan_mark]]);
+			}
+		},
+		subSkill: {
+			mark: {
+				charlotte: true,
+				silent: true,
+				lastDo: true,
+				trigger: { player: "useCardToPlayer" },
+				intro: {
+					content(storage, player) {
+						let str = "当前没有“割圆”目标";
+						if (player.storage.pegeyuan_mark) {
+							str = `上个割圆目标为${get.translation(player.storage.pegeyuan_mark)}`;
+						}
+						if (player.getStorage("pegeyuan").length) {
+							str += "<br>割圆组：";
+							for (const i of player.getStorage("pegeyuan")) {
+								str += `<li>${get.translation(i)}`;
+							}
+						}
+						return str;
+					},
+				},
+				onremove(player, skill) {
+					player.setStorage(skill, false, true);
+					player.removeTip(skill);
+				},
+				filter(event, player) {
+					return player.hasHistory("lose", evt => {
+						return evt.getParent() == event.getParent() && evt.cards2?.length && Object.values(evt.gaintag_map).flat().includes("pejieshu_tag");
+					});
+				},
+				async content(event, trigger, player) {
+					const target = trigger.target;
+					if (!player.storage[event.name]) {
+						player.setStorage(event.name, target, true);
+						player.addTip(event.name, `${get.translation(event.name)}：${get.translation(target)}`);
+					} else {
+						player.storage[event.name] = false;
+						player.removeTip(event.name);
+					}
+				},
+			},
+		},
+		ai: { combo: "pejieshu" },
+	},
+	pegusuan: {
+		audio: "dcgusuan",
+		juexingji: true,
+		forced: true,
+		skillAnimation: true,
+		animationColor: "purple",
+		trigger: { player: "pegeyuanAfter" },
+		filter(event, player) {
+			const cards = player
+				.getAllHistory("lose", evt => {
+					return evt.type == "discard" && evt.getParent(3)?.name == "pegeyuan" && evt.cards2?.length;
+				})
+				.map(evt => evt.cards2)
+				.reduce((a, b) => b.addArray(a), []);
+			return player.getStorage("pegeyuan").length >= 3 && cards.length < 4;
+		},
+		async content(event, trigger, player) {
+			player.awakenSkill(event.name);
+			await player.draw(5);
+			const targets = game.filterPlayer(current => current != player);
+			if (!targets.length) {
+				return;
+			}
+			const result =
+				targets.length > 2
+					? await player
+							.chooseTarget({
+								forced: true,
+								prompt: "选择两名其他角色与你的距离互为1",
+								filterTarget: lib.filter.notMe,
+								selectTarget: 2,
+								ai(target) {
+									return -get.attitude(get.player(), target);
+								},
+							})
+							.forResult()
+					: { bool: true, targets };
+			if (result?.bool && result.targets?.length) {
+				const targets = result.targets;
+				player.line(targets);
+				player.addSkill(event.name + "_effect");
+				player.markAuto(event.name + "_effect", targets);
+				targets.forEach(target => {
+					target.addSkill(event.name + "_effect");
+					target.markAuto(event.name + "_effect", [player]);
+				});
+				player.addSkill(event.name + "_effect2");
+			}
+		},
+		ai: { combo: ["pejieshu", "pegeyuan"] },
+		subSkill: {
+			effect: {
+				intro: { content: "与$距离互为1" },
+				mod: {
+					globalFrom(from, to) {
+						if (from.getStorage("pegusuan_effect").includes(to)) {
+							return -Infinity;
+						}
+					},
+				},
+			},
+			effect2: {
+				mod: {
+					cardUsableTarget(card, player, target) {
+						if (get.distance(player, target) <= 1) {
+							return Infinity;
+						}
+					},
+				},
+			},
+		},
+	},
+	//白起------by 清风
+	pewuan: {
+		audio: 2,
+		forced: true,
+		trigger: { source: "damageSource" },
+		logTarget: "player",
+		async content(event, trigger, player) {
+			const target = event.targets[0];
+			player.addSkill(event.name + "_dam");
+			player.addMark(event.name + "_dam", 1, false);
+			player.markAuto(event.name + "_dam2", [target]);
+			target.addTempSkill(event.name + "_fengyin");
+		},
+		subSkill: {
+			dam: {
+				audio: "pewuan",
+				charlotte: true,
+				forced: true,
+				onremove: true,
+				mod: {
+					targetInRange(card, player, target) {
+						if (player.getStorage("pewuan_dam2").includes(target)) {
+							return true;
+						}
+					},
+					cardUsableTarget(card, player, target) {
+						if (player.getStorage("pewuan_dam2").includes(target)) {
+							return Infinity;
+						}
+					},
+				},
+				intro: {
+					content(storage, player) {
+						let str = `<li>造成伤害+${storage}`;
+						if (player.getStorage("pewuan_dam2").length) {
+							str += `<li>对${get.translation(player.getStorage("pewuan_dam2"))}使用牌无距离与次数限制`;
+						}
+						return str;
+					},
+				},
+				trigger: {
+					source: "damageBegin2",
+					player: "useCard1",
+				},
+				filter(event, player) {
+					return event.name == "damage" || (event.addCount != false && event.targets?.some(target => player.getStorage("pewuan_dam2").includes(target)));
+				},
+				async content(event, trigger, player) {
+					if (trigger.name == "damage") {
+						trigger.num += player.countMark(event.name);
+					} else {
+						trigger.addCount = false;
+						const stat = player.getStat("card"),
+							name = trigger.card.name;
+						if (typeof stat[name] == "number" && stat[name] > 0) {
+							stat[name]--;
+						}
+					}
+				},
+			},
+			fengyin: {
+				charlotte: true,
+				inherit: "fengyin",
+			},
+		},
+	},
+	peshashen: {
+		audio: 2,
+		forced: true,
+		trigger: { source: "dying" },
+		logTarget: "player",
+		filter(event, player) {
+			return player != event.player;
+		},
+		async content(event, trigger, player) {
+			trigger.cancel();
+			await event.targets[0].die(trigger);
+			player.when({ global: ["phaseAfter", "phaseBefore"] }).step(async (event, trigger, player) => {
+				player.removeSkill(event.name);
+				if (event.triggername == "phaseAfter") {
+					player.insertPhase();
+				}
+			});
+		},
+	},
 	//花木兰------by 清风
 	perongbian: {
 		audio: 2,
@@ -104,23 +422,25 @@ const skills = {
 			if (!player.getStorage("perongbian").length) {
 				return false;
 			}
-			return get.inpileVCardList(info => {
-				if (!["basic", "trick"].includes(info[0])) {
-					return false;
-				}
-				return event.filterCard(
-					get.autoViewAs(
-						{
-							name: info[2],
-							nature: info[3],
-							storage: { peliezhan: true },
-						},
-						"unsure"
-					),
-					player,
-					event
-				);
-			}).length > 0;
+			return (
+				get.inpileVCardList(info => {
+					if (!["basic", "trick"].includes(info[0])) {
+						return false;
+					}
+					return event.filterCard(
+						get.autoViewAs(
+							{
+								name: info[2],
+								nature: info[3],
+								storage: { peliezhan: true },
+							},
+							"unsure"
+						),
+						player,
+						event
+					);
+				}).length > 0
+			);
 		},
 		chooseButton: {
 			dialog(event, player) {

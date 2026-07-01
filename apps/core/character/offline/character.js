@@ -1,4 +1,16 @@
 const characters = {
+	pe_liuhui: {
+		sex: "male",
+		group: "qun",
+		hp: 4,
+		skills: ["pejieshu", "pegeyuan", "pegusuan"],
+	},
+	pe_baiqi: {
+		sex: "male",
+		group: "qun",
+		hp: 5,
+		skills: ["pewuan", "peshashen"],
+	},
 	pe_huamulan: {
 		sex: "female",
 		group: "qun",

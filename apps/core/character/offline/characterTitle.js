@@ -1,4 +1,6 @@
 export default {
+	pe_liuhui: "周天古率",
+	pe_baiqi: "大良造",
 	pe_huamulan: "孝烈巾帼",
 	pe_yangyuhuan: "贵妃醉酒",
 	pe_xiahoulan: "不驯巾帼",
