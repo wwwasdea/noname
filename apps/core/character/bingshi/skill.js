@@ -3,6 +3,85 @@ import { lib, game, ui, get, ai, _status } from "noname";
 /** @type { importCharacterConfig["skill"] } */
 const skills = {
 	//potential--潜在, 潜力, 可能, 电位, 潜能, 势
+	//势程普------by 清风
+	potduzuo: {
+		audio: 2,
+		trigger: {
+			player: "gainAfter",
+			global: "loseAsyncAfter",
+		},
+		filter(event, player) {
+			return event.getg?.(player).length && event.getParent().name != "potduzuo";
+		},
+		async cost(event, trigger, player) {
+			event.result = await player
+				.chooseTarget({
+					prompt: get.prompt(event.skill),
+					prompt2: "选择一名角色令其获得一张火【杀】",
+					ai(target) {
+						return get.attitude(get.player(), target) * (114514 - target.countCards("h"));
+					},
+				})
+				.forResult();
+		},
+		async content(event, trigger, player) {
+			const target = event.targets[0];
+			const card = get.cardPile(card => get.name(card) == "sha" && get.nature(card) == "fire");
+			if (card) {
+				await target.gain({ cards: [card], animate: "gain2" });
+			} else {
+				target.popup("没喽");
+			}
+		},
+	},
+	potbiqian: {
+		audio: 2,
+		trigger: { global: "damageBegin4" },
+		filter(event, player) {
+			if (!event.card || event.card.name != "sha") {
+				return false;
+			}
+			if (!event.player?.isIn()) {
+				return false;
+			}
+			return [player, event.player].some(i => i.countCards("h") > i.getHp());
+		},
+		async cost(event, trigger, player) {
+			const target = trigger.player;
+			event.result = await player
+				.chooseTarget({
+					prompt: get.prompt(event.skill, trigger.player),
+					prompt2: "将你或其将手牌弃至当前体力并令此伤害-1",
+					filterTarget(card, player, target) {
+						const targetx = get.event().targetx;
+						return [targetx, player].includes(target) && target.countCards("h") > target.getHp();
+					},
+					ai(target) {
+						const { player, targetx } = get.event();
+						if (get.attitude(player, targetx) > 0 && [player, targetx].some(i => i.countCards("h") - i.getHp() <= 2)) {
+							return get.attitude(player, target) * (114514 - target.countCards("h"));
+						} else {
+							if (targetx.countCards("h") - targetx.getHp() >= 5) {
+								return -get.attitude(player, target);
+							}
+						}
+						return 0;
+					},
+				})
+				.set("targetx", target)
+				.forResult();
+		},
+		async content(event, trigger, player) {
+			const target = event.targets[0];
+			const num = target.countCards("h") - target.getHp();
+			if (target.hasDiscardableCards(target, "h")) {
+				const { cards } = await target.chooseToDiscard({ forced: true, position: "h", num }).forResult();
+				if (cards?.length >= num) {
+					trigger.num--;
+				}
+			}
+		},
+	},
 	//势夏侯霸------by 清风
 	potlibing: {
 		audio: 2,
@@ -212,7 +291,9 @@ const skills = {
 				},
 				logTarget: "player",
 				async content(event, trigger, player) {
-					const { targets: [target] } = event;
+					const {
+						targets: [target],
+					} = event;
 					const storage = player.getStorage(event.name).slice();
 					player.removeSkill(event.name);
 					if (storage.includes("draw")) {
@@ -334,7 +415,9 @@ const skills = {
 				logTarget: "player",
 				async content(event, trigger, player) {
 					const suit = get.suit(trigger.card),
-						{ targets: [target] } = event,
+						{
+							targets: [target],
+						} = event,
 						card = target.getExpansions("potsifeng")[0];
 					await target.loseToDiscardpile({ cards: [card] });
 					if (suit != get.suit(card) && target.countDiscardableCards(target, "h")) {
