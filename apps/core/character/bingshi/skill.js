@@ -427,7 +427,7 @@ const skills = {
 				filter(event, player) {
 					return event.player.hasExpansions("potsifeng");
 				},
-				lotTarget: "player",
+				logTarget: "player",
 				async cost(event, trigger, player) {
 					const list = ["对其造成一点伤害", "获得其所有“伺锋”牌"];
 					const result = await player
