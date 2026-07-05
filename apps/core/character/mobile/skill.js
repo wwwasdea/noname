@@ -775,7 +775,8 @@ const skills = {
 	},
 	//界周妃
 	reliangyin: {
-		audio: 2,
+		audio: 4,
+		logAudio: () => 2,
 		trigger: {
 			global: ["addToExpansionAfter", "loseAsyncAfter", "gainAfter"],
 		},
@@ -839,6 +840,7 @@ const skills = {
 		subSkill: {
 			end: {
 				audio: "reliangyin",
+				logAudio: () => ["reliangyin3.mp3", "reliangyin4.mp3"],
 				trigger: {
 					global: "roundEnd",
 				},
@@ -11134,6 +11136,7 @@ const skills = {
 			const suits = get.info(event.skill).getSuitsMap();
 			const num = player.countMark("mbjiexun_used") + 1;
 			const str = lib.suit
+				.toReversed()
 				.map(suit => {
 					return `${get.translation(suit)}：${get.cnNumber(suits[suit] || 0)}张`;
 				})
