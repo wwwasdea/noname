@@ -6960,25 +6960,25 @@ const skills = {
 		derivation: ["ollongdan", "chongzhen"],
 	},
 	// 幻大乔
-	twguose: {
+	huanguose: {
 		audio: 2,
 		trigger: { global: ["changeHpAfter", "gainMaxHpAfter", "loseMaxHpAfter"] },
 		filter(event, player) {
-			if ((!event.player || !event.player.isDisabledJudge()) && event.player?.hasJudge("lebu")) {
+			if (!event.player.isDisabledJudge() && event.player.hasCards("j", card => get.name(card.viewAs || card.name) === "lebu")) {
 				return false;
 			}
-			if (!player.hasCards("he") && (!event.player || !event.player.hasCards("he"))) {
+			if (!player.hasCards("he") && !event.player.hasCards("he")) {
 				return false;
 			}
-			return get.info("twguose").damageStatusChanged(event.player, event);
+			return get.info("huanguose").damageStatusChanged(event.player, event);
 		},
 		damageStatusChanged(player, evt) {
 			if (!evt.changedMaxHp) {
 				if (evt.changedHp > 0) {
-					return !player.isDamaged();
+					return !player.isDamaged() || (player.getHp() > 0 && player.getHp() - evt.changedHp < 0);
 				}
 				if (evt.changedHp < 0) {
-					return player.hp - evt.changedHp === player.maxHp;
+					return player.hp - evt.changedHp === player.maxHp || (player.hp <= 0 && player.hp - evt.changedHp > 0);
 				}
 			}
 			if (evt.changedMaxHp > 0) {
@@ -6996,13 +6996,12 @@ const skills = {
 		},
 		async cost(event, trigger, player) {
 			const target = trigger.player;
-			if (target?.hasJudge("lebu")) {
+			if (target.hasJudge("lebu")) {
 				return;
 			}
 			event.result = await player
 				.chooseTarget({
-					prompt: get.prompt(event.skill, target),
-					prompt2: `选择一名角色，将其一张牌当【乐不思蜀】置入${get.translation(target)}的判定区，然后摸两张牌`,
+					prompt: get.prompt2(event.skill),
 					filterTarget(card, player, target) {
 						const targetx = get.event().targetx;
 						if (![player, targetx].includes(target)) {
@@ -7066,16 +7065,16 @@ const skills = {
 				await player.draw(2);
 			}
 		},
-		group: "twguose_effect",
+		group: "huanguose_effect",
 		subSkill: {
 			effect: {
-				audio: "twguose",
+				audio: "huanguose",
 				trigger: { global: "judgeEnd" },
 				filter(event, player) {
 					return event.card?.name === "lebu" && !event.result?.bool;
 				},
 				prompt2(event, player) {
-					return `帼色：是否将${get.translation(event.player)}的${get.translation(event.card)}的效果改为跳过弃牌阶段？`;
+					return `将${get.translation(event.player)}的${get.translation(event.card)}的效果改为跳过弃牌阶段？`;
 				},
 				check(event, player) {
 					return get.attitude(player, event.player) > 0;
@@ -7088,7 +7087,7 @@ const skills = {
 						.when("lebuBegin")
 						.filter(evt => evt.getParent() == trigger.getParent())
 						.then(async (event, trigger, player) => {
-							trigger.setContent(get.info("twguose").skipDiscard);
+							trigger.setContent(get.info("huanguose").skipDiscard);
 						});
 					game.log(player, "将", get.translation(card), "改为跳过弃牌阶段");
 				},
@@ -7104,7 +7103,7 @@ const skills = {
 			},
 		},
 	},
-	twliuli: {
+	huanliuli: {
 		audio: 2,
 		trigger: { global: "useCardToTargeted" },
 		filter(event, player) {
@@ -7113,7 +7112,7 @@ const skills = {
 			if (!get.is.damageCard(card)) {
 				return false;
 			}
-			return target?.hasCards("ej", card => lib.filter.cardDiscardable(card, player, "twliuli") && get.color(card) === "red");
+			return target.hasCards("ej", card => lib.filter.cardDiscardable(card, player, "huanliuli") && get.color(card) === "red");
 		},
 		async cost(event, trigger, player) {
 			const target = trigger.target;
@@ -7121,9 +7120,9 @@ const skills = {
 				.discardPlayerCard({
 					target,
 					position: "ej",
-					prompt: `流俪：是否弃置${get.translation(target)}场上的一张红色牌，令${get.translation(trigger.card)}对其无效？`,
+					prompt: `是否弃置${get.translation(target)}场上的一张红色牌，令${get.translation(trigger.card)}对其无效？`,
 					filterButton(button) {
-						return get.color(button.link) === "red" && lib.filter.cardDiscardable(button.link, get.player(), "twliuli");
+						return get.color(button.link) === "red" && lib.filter.cardDiscardable(button.link, get.player(), "huanliuli");
 					},
 					ai(button) {
 						return 6 - get.value(button.link);
@@ -28807,10 +28806,6 @@ const skills = {
 				},
 				async content(event, trigger, player) {
 					const source = trigger.card.player;
-					if(!source || !source.isIn()) {
-						trigger.getParent()?.excluded.add(player);
-						return;
-					}
 					if (!source.hasCards("he", card => lib.filter.cardDiscardable(card, source, event.skill))) {
 						trigger.getParent()?.excluded.add(player);
 					} else {

@@ -10502,7 +10502,9 @@ const skills = {
 	//孙尚香
 	sbjieyin: {
 		audio: 4,
-		trigger: { global: "phaseUseBegin" },
+		trigger: { player: "phaseUseBegin" },
+		forced: true,
+		locked: false,
 		dutySkill: true,
 		initGroup: "shu",
 		group: ["sbjieyin_init", "sbjieyin_fail", "sbjieyin_achieve"],
@@ -10563,7 +10565,6 @@ const skills = {
 		subSkill: {
 			fail: {
 				audio: "sbjieyin2.mp3",
-				forced: true,
 				trigger: {
 					global: "dieAfter",
 					player: "changeGroupAfter",
@@ -10747,7 +10748,7 @@ const skills = {
 			}
 		},
 		ai: {
-			combo: "sbjieyin",
+			combo: "xinsbjieyin",
 		},
 	},
 	sbxiaoji: {
