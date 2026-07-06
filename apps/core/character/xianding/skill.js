@@ -139,6 +139,14 @@ const skills = {
 		audio: 2,
 		enable: "phaseUse",
 		usable: 1,
+		mod: {
+			cardUsable(card, player) {
+				if (card?.storage?.dcsbjuao) {
+					return Infinity;
+				}
+			},
+		},
+		locked: false,
 		filter(event, player) {
 			if (!player.hasDiscardableCards(player, "he")) {
 				return false;
@@ -153,6 +161,7 @@ const skills = {
 						name: info[2],
 						nature: info[3],
 						isCard: true,
+						storage:{ dcsbjuao: true },
 					},
 					"unsure"
 				);
@@ -171,6 +180,7 @@ const skills = {
 							name: info[2],
 							nature: info[3],
 							isCard: true,
+							storage:{ dcsbjuao: true },
 						},
 						"unsure"
 					);
@@ -183,6 +193,7 @@ const skills = {
 				return player.getUseValue({
 					name: button.link[2],
 					nature: button.link[3],
+					storage:{ dcsbjuao: true },
 				});
 			},
 			backup(links, player) {
@@ -198,6 +209,7 @@ const skills = {
 									name: link[2],
 									nature: link[3],
 									isCard: true,
+									storage:{ dcsbjuao: true },
 								},
 								"unsure"
 							);
@@ -222,6 +234,7 @@ const skills = {
 						suit: "none",
 						number: null,
 						isCard: true,
+						storage:{ dcsbjuao: true }
 					},
 					multitarget: true,
 					multiline: true,
@@ -905,7 +918,7 @@ const skills = {
 	},
 	//神关羽
 	dcwushen: {
-		audio: 2,
+		audio: "wushen",
 		mod: {
 			cardname(card, player, name) {
 				if (get.suit(card) === "heart") {
@@ -989,7 +1002,7 @@ const skills = {
 			content: "mark",
 			onunmark: true,
 		},
-		audio: 2,
+		audio: "wuhun2",
 		trigger: {
 			source: "damageSource",
 			player: "damageEnd",
@@ -1009,7 +1022,7 @@ const skills = {
 		group: "dcwuhun_die",
 		subSkill: {
 			die: {
-				audio: "dcwuhun",
+				audio: "wuhun2",
 				trigger: {
 					player: "die",
 				},
@@ -1110,7 +1123,7 @@ const skills = {
 	},
 	//神刘备
 	dclongnu: {
-		audio: 2,
+		audio: "nzry_longnu",
 		zhuanhuanji: true,
 		mark: true,
 		marktext: "☯",
@@ -1229,7 +1242,7 @@ const skills = {
 		},
 	},
 	dcjieying: {
-		audio: 2,
+		audio: "nzry_jieying",
 		trigger: {
 			player: ["linkBefore", "enterGame"],
 			global: "phaseBefore",
@@ -1252,7 +1265,7 @@ const skills = {
 		global: "dcjieying_global",
 		subSkill: {
 			phaseJieshu: {
-				audio: "dcjieying",
+				audio: "nzry_jieying",
 				trigger: {
 					player: "phaseJieshuBegin",
 				},
@@ -16530,33 +16543,23 @@ const skills = {
 			const bool2 = get.type2(trigger.card) === get.type2(history[index - 1].card);
 			if (bool1 && bool2) {
 				const result = await player
-					.chooseButton([
-						get.prompt2(event.skill),
-						[
-							[
-								["draw", `摸两张牌`],
-								["noCount", `令${get.translation(trigger.card)}不计入次数`],
-							],
-							"textbutton",
-						],
-					])
-					.set("ai", button => {
-						if (button.link == "draw") {
-							return 2;
-						}
-						if (button.link == "noCount") {
-							const usable = get.player().getCardUsable(get.event().getTrigger().card);
-							if (usable > 0) {
-								return 1.5;
+					.chooseControl({
+						prompt: get.prompt2(event.skill),
+						controls: ["摸两张牌", `令${get.translation(trigger.card)}不计入次数`],
+						ai() {
+							const { player, controls } = get.event();
+							const usable = player.getCardUsable(get.event().getTrigger().card);
+							if(usable <= 0) {
+								return controls[1];
 							}
-							return 2.5;
-						}
+							return controls[0];
+						},
 					})
 					.forResult();
-				if (result?.links?.length) {
+				if (typeof result?.control == "string") {
 					event.result = {
 						bool: true,
-						cost_data: result.links[0],
+						cost_data: result.control,
 					};
 				}
 			} else if (!bool1 && !bool2) {
@@ -16568,10 +16571,10 @@ const skills = {
 		},
 		async content(event, trigger, player) {
 			const link = event.cost_data;
-			if (link == "draw") {
-				await player.draw(2);
+			if (link == "摸两张牌") {
+				await player.draw({ num: 2 });
 			}
-			if (link == "noCount") {
+			if (link == `令${get.translation(trigger.card)}不计入次数`) {
 				if (trigger.addCount !== false) {
 					trigger.addCount = false;
 					const stat = player.getStat().card,

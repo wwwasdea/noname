@@ -25,6 +25,7 @@ const characters = {
 		maxHp: 5,
 		skills: ["dcwushen", "dcwuhun"],
 		groupInGuozhan: "shu",
+		dieAudios: ["shen_guanyu"],
 	},
 	dc_shen_liubei: {
 		sex: "male",
@@ -33,6 +34,7 @@ const characters = {
 		maxHp: 6,
 		skills: ["dclongnu", "dcjieying"],
 		groupInGuozhan: "shu",
+		dieAudios: ["shen_liubei"],
 	},
 	dc_shen_zhangliao: {
 		sex: "male",
