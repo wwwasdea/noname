@@ -5333,17 +5333,17 @@ const skills = {
 		audio: 2,
 		mod: {
 			cardname(card) {
-				if (lib.skill.xunshi.isXunshi(card)) {
+				if (lib.skill.xunshi.isXunshi(card) && get.position(card) === "h") {
 					return "sha";
 				}
 			},
 			cardnature(card) {
-				if (lib.skill.xunshi.isXunshi(card)) {
+				if (lib.skill.xunshi.isXunshi(card) && get.position(card) === "h") {
 					return false;
 				}
 			},
 			suit(card) {
-				if (lib.skill.xunshi.isXunshi(card)) {
+				if (lib.skill.xunshi.isXunshi(card) && get.position(card) === "h") {
 					return "none";
 				}
 			},
