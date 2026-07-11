@@ -10989,6 +10989,7 @@ const skills = {
 									player.addMark("friendyance", Math.min(7 - player.countMark("friendyance"), 1 + num), false);
 								}
 								if (storage[4] && storage[3] >= 3) {
+									player.logSkill("friendfangqiu", null, null, null, [3]);
 									player.restoreSkill("friendfangqiu");
 								}
 							}
@@ -11001,10 +11002,11 @@ const skills = {
 	},
 	friendfangqiu: {
 		audio: 3,
+		logAudio: index => (typeof index === "number" ? "friendfangqiu" + index + ".mp3" : 2),
 		limited: true,
 		trigger: { player: "friendyance_minigame" },
 		check(event, player) {
-			return event.player === player;
+			return _status.currentPhase === player;
 		},
 		skillAnimation: true,
 		animationColor: "metal",
@@ -32438,6 +32440,15 @@ const skills = {
 			const isOption1 = control.startsWith("弃" + colorText + "牌");
 			const isOption2 = control.startsWith("获得" + colorText + "牌");
 			const isBeishui = control === "背水";
+			if (isOption2 || isBeishui) {
+				const pileCards = Array.from(ui.cardPile.childNodes);
+				const colorCards = pileCards.filter(card => get.color(card) === color);
+				const toGain = colorCards.slice(0, effectNum);
+				if (toGain.length > 0) {
+					game.log(player, "获得了" + effectNum + "张" + get.translation(color) + "牌");
+					await player.gain({ cards: toGain, animate: "draw2" });
+				}
+			}
 			if (isOption1 || isBeishui) {
 				if (canDiscard) {
 					const result = await player
@@ -32459,15 +32470,6 @@ const skills = {
 							game.log(player, "令此次伤害-" + effectNum);
 						}
 					}
-				}
-			}
-			if (isOption2 || isBeishui) {
-				const pileCards = Array.from(ui.cardPile.childNodes);
-				const colorCards = pileCards.filter(card => get.color(card) === color);
-				const toGain = colorCards.slice(0, effectNum);
-				if (toGain.length > 0) {
-					game.log(player, "获得了" + effectNum + "张" + get.translation(color) + "牌");
-					await player.gain({ cards: toGain, animate: "draw2" });
 				}
 			}
 			if (isBeishui) {
