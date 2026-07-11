@@ -1,6 +1,14 @@
 import { lib, game, ui, get, ai, _status } from "noname";
 
 const translates = {
+	ym_jsrg_diaochan: "墨梦貂蝉",
+	ym_jsrg_diaochan_prefix: "墨|梦",
+	ymdiyu: "低语",
+	ymdiyu_info: `每轮开始时，你可以令一名角色本轮造成的伤害+1，然后你选择${get.poptip("benghuai")}、${get.poptip("tongji")}、${get.poptip("olbihun")}、${get.poptip("dcyiju")}中一个未选择过的技能令其获得。`,
+	ymfuyi: "扶衣",
+	ymfuyi_info: "当你成为【杀】的目标时，你可以令一名角色也成为此【杀】的目标并令所有目标角色各摸一张牌；当此【杀】被一名目标角色抵消后，此【杀】对其他目标角色无效。",
+	ymjiuji: "就计",
+	ymjiuji_info: "每轮结束后，你可以令两名角色依次执行一个仅能对对方使用牌且双方技能互换的额外回合。",
 	ym_friend_zhugeliang: "墨友诸葛亮",
 	ym_friend_zhugeliang_prefix: "墨|友",
 	ymfriendyance: "演策",

@@ -3,6 +3,205 @@ import html from "dedent";
 
 /** @type { importCharacterConfig["skill"] } */
 const skills = {
+	//梦貂蝉------by 清风
+	ymdiyu: {
+		audio: 2,
+		trigger: { global: "roundStart" },
+		derivation: ["benghuai", "tongji", "olbihun", "dcyiju"],
+		async cost(event, trigger, player) {
+			event.result = await player
+				.chooseTarget({
+					prompt: get.prompt(event.skill),
+					prompt2: "令一名角色本轮伤害+1",
+					ai(target) {
+						const player = get.player();
+						if (player.getStorage("ymdiyu_gived").length > 3) {
+							return get.attitude(player, target) * Math.min(1, target.countCards("h"));
+						}
+						if (player.hasCards("hs", card => get.name(card) == "shan")) {
+							return -get.attitude(player, target);
+						}
+						return 0;
+					},
+				})
+				.forResult();
+		},
+		async content(event, trigger, player) {
+			const target = event.targets[0];
+			target.addTempSkill(event.name + "_dam", "roundStart");
+			target.addMark(event.name + "_dam", 1, false);
+			const skills = get
+				.info(event.name)
+				.derivation.slice()
+				.removeArray(player.getStorage(event.name + "_gived"));
+			if (skills.length) {
+				const list = [];
+				for (const skill of skills) {
+					list.push([skill, `<div class="popup text" style="width:calc(100% - 10px);display:inline-block"><div class="skill">【` + get.translation(skill) + "】</div><div>" + lib.translate[skill + "_info"] + "</div></div>"]);
+				}
+				const result =
+					skills.length > 1
+						? await player
+								.chooseButton({
+									createDialog: [`令${get.translation(target)}获得一个技能`, [list, "textbutton"]],
+									forced: true,
+									ai(button) {
+										const { player, skills, target } = get.event();
+										if (get.attitude(player, target) > 0) {
+											skills.removeArray(["olbihun", "dcyiju"]);
+										} else {
+											skills.removeArray(["benghuai", "tongji"]);
+										}
+										return button.link === skills.randomGet();
+									},
+								})
+								.set("skills", skills)
+								.set("target", target)
+								.forResult()
+						: { bool: true, links: skills };
+				if (result?.bool && result.links?.length) {
+					const skill = result.links[0];
+					await target.addSkills(skill);
+					player.addSkill(event.name + "_gived");
+					player.markAuto(event.name + "_gived", [skill]);
+				}
+			}
+		},
+		subSkill: {
+			gived: {
+				charlotte: true,
+				onremove: true,
+				intro: {
+					content(storage, player) {
+						return `已选择过：${storage.map(skill => get.poptip(skill)).join("、")}`;
+					},
+				},
+			},
+			dam: {
+				charlotte: true,
+				forced: true,
+				mark: true,
+				onremove: true,
+				intro: { content: "本轮造成伤害+#" },
+				trigger: { source: "damageBegin2" },
+				filter(event, player) {
+					return player.hasMark("ymdiyu_dam");
+				},
+				async content(event, trigger, player) {
+					trigger.num += player.countMark(event.name);
+				},
+			},
+		},
+	},
+	ymfuyi: {
+		audio: 2,
+		trigger: { target: "useCardToTarget" },
+		filter(event, player) {
+			return event.card.name == "sha" && game.hasPlayer(current => lib.filter.targetEnabled2(event.card, event.player, current) && !event.targets.includes(current));
+		},
+		async cost(event, trigger, player) {
+			event.result = await player
+				.chooseTarget({
+					prompt: get.prompt(event.skill),
+					prompt2: `选择一名角色也成为${get.translation(trigger.card)}的目标`,
+					filterTarget(crd, player, target) {
+						return lib.filter.targetEnabled2(get.event().card, get.event().targetx, target) && !get.event().targets.includes(target);
+					},
+					ai(target) {
+						const { player, targetx, card } = get.event();
+						return get.effect(target, card, targetx, player);
+					},
+				})
+				.set("card", trigger.card)
+				.set("targetx", trigger.player)
+				.set("targets", trigger.targets)
+				.forResult();
+		},
+		async content(event, trigger, player) {
+			const target = event.targets[0];
+			trigger.targets.add(target);
+			await game.asyncDraw(trigger.targets);
+			player
+				.when({ global: "shaMiss" })
+				.filter(evt => evt.player === trigger.player)
+				.step(async (event, trigger2, player) => {
+					trigger.getParent().targets.length = 0;
+					trigger.getParent().all_excluded = true;
+					game.log(trigger.card, "对其余目标无效");
+				});
+		},
+	},
+	ymjiuji: {
+		audio: 2,
+		trigger: { global: "roundEnd" },
+		filter(event, player) {
+			return game.players.length > 1;
+		},
+		async cost(event, trigger, player) {
+			event.result = await player
+				.chooseTarget({
+					prompt: get.prompt(event.skill),
+					prompt2: "选择两名角色依次执行一个仅能对对方使用牌且双方技能互换的额外回合",
+					selectTarget: 2,
+					ai(target) {
+						return get.attitude(get.player(), target);
+					},
+				})
+				.forResult();
+		},
+		async content(event, trigger, player) {
+			const targets = event.targets.sortBySeat();
+			const target1 = targets[0],
+				target2 = targets[1];
+			const skills1 = target1.getSkills(null, false, false).filter(skill => {
+				const info = get.info(skill);
+				return info && !info.charlotte;
+			});
+			const skills2 = target2.getSkills(null, false, false).filter(skill => {
+				const info = get.info(skill);
+				return info && !info.charlotte;
+			});
+			target1
+				.when({ player: "phaseBefore" })
+				.filter(evt => evt.skill == event.name)
+				.step(async (event, trigger, player) => {
+					target1.changeSkills(skills2, skills1);
+					target1.addSkill("ymjiuji_effect");
+					target1.markAuto("ymjiuji_effect", [target2]);
+					target2.changeSkills(skills1, skills2);
+					target2.addSkill("ymjiuji_effect");
+					target2.markAuto("ymjiuji_effect", [target1]);
+				});
+			target2
+				.when({ player: "phaseAfter" })
+				.filter(evt => evt.skill == event.name)
+				.step(async (event, trigger, player) => {
+					target1.changeSkills(skills1, skills2);
+					target1.removeSkill("ymjiuji_effect");
+					target2.changeSkills(skills2, skills1);
+					target2.removeSkill("ymjiuji_effect");
+				});
+			target1.insertPhase();
+			target2.insertPhase();
+		},
+		subSkill: {
+			effect: {
+				charlotte: true,
+				onremove: true,
+				mark: true,
+				intro: {
+					content: "使用牌仅能指定$为目标",
+				},
+				mod: {
+					playerEnabled(card, player, target) {
+						if (!player.getStorage("ymjiuji_effect").includes(target)) {
+							return false;
+						}
+					},
+				},
+			},
+		},
+	},
 	//线下奶龙------by 清风
 	ymfriendyance: {
 		audio: ["friendyance1.mp3", "friendyance2.mp3", "friendyance3.mp3"],
