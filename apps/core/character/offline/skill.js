@@ -3,6 +3,195 @@ import html from "dedent";
 
 /** @type { importCharacterConfig["skill"] } */
 const skills = {
+	//PE神钟会------by 清风
+	pelinjie: {
+		audio: "dclinjie",
+		marktext: "凛",
+		intro: {
+			name: "凛界（凛）",
+			name2: "凛",
+			content: "mark",
+		},
+		group: "pelinjie_effect",
+		trigger: { global: "roundStart" },
+		async cost(event, trigger, player) {
+			event.result = await player
+				.chooseTarget({
+					prompt: `###${get.prompt(event.skill)}###对一名角色造成1点伤害然后令其获得一个「凛」标记`,
+					ai(target) {
+						return get.damageEffect(target, get.player(), get.player());
+					},
+				})
+				.forResult();
+		},
+		async content(event, trigger, player) {
+			const target = event.targets[0];
+			await target.damage();
+			target.addMark(event.name, 1);
+		},
+		subSkill: {
+			effect: {
+				audio: "dclinjie",
+				forced: true,
+				trigger: { global: "damageEnd" },
+				filter(event, player) {
+					const target = event.player;
+					return target !== player && target.hasMark("pelinjie") && target.countDiscardableCards(target, "h");
+				},
+				logTarget: "player",
+				async content(event, trigger, player) {
+					const target = event.targets[0];
+					const hs = target.getDiscardableCards(target, "h");
+					if (hs.length) {
+						const damage = target.countCards("h") == 1;
+						await target.chooseToDiscard({ forced: true, position: "h" });
+						if (damage) {
+							await target.damage();
+						}
+					}
+				},
+			},
+		},
+	},
+	peduzhang: {
+		audio: "dcduzhang",
+		mod: {
+			maxHandcard(player, num) {
+				return (num += player.countMark("pelinjie"));
+			},
+		},
+		locked: false,
+		forced: true,
+		trigger: { target: "useCardToTargeted" },
+		filter(event, player) {
+			return get.color(event.card) == "black" && event.targets?.length === 1;
+		},
+		async content(event, trigger, player) {
+			await player.draw({ num: 1 });
+			player.addMark("pelinjie", 1);
+		},
+	},
+	pejianghuo: {
+		audio: "dcjianghuo",
+		juexingji: true,
+		forced: true,
+		skillAnimation: true,
+		animationColor: "thunder",
+		trigger: { player: "phaseBegin" },
+		filter(event, player) {
+			const num = game
+				.filterPlayer(target => target.hasMark("pelinjie"))
+				.map(target => target.countMark("pelinjie"))
+				.reduce((sum, cur) => sum + cur, 0);
+			return num > game.players.length;
+		},
+		async content(event, trigger, player) {
+			player.awakenSkill(event.name);
+			const num = game
+				.filterPlayer(target => target !== player && target.hasMark("pelinjie"))
+				.map(target => target.countMark("pelinjie"))
+				.reduce((sum, cur) => sum + cur, 0);
+			game.filterPlayer(target => target !== player).forEach(target => target.clearMark("pelinjie"));
+			if (num > 0) {
+				player.addMark("pelinjie", num);
+			}
+			await player.draw({ num: player.countMark("pelinjie") });
+			await player.gainMaxHp();
+			await player.changeSkills(["pelishi"], ["pelinjie"]);
+			player.markSkill("pelinjie");
+		},
+		ai: { combo: "pelinjie" },
+	},
+	pelishi: {
+		audio: "dclishi",
+		trigger: { player: "phaseJieshuBegin" },
+		filter(event, player) {
+			return !player.hasMark("pelinjie") || game.hasPlayer(current => !player.getStorage("pelishi_effect").includes(current));
+		},
+		async cost(event, trigger, player) {
+			if (!player.hasMark("pelinjie")) {
+				event.result = {
+					bool: true,
+				};
+			} else {
+				event.result = await player
+					.chooseTarget({
+						prompt: get.prompt(event.skill),
+						prompt2: "你可失去任意枚“凛”并选择等量名角色令其于其下回合开始时跳过一个阶段",
+						filterTarget(card, player, target) {
+							return !player.getStorage("pelishi_effect").includes(target);
+						},
+						selectTarget: [1, player.countMark("pelinjie")],
+						ai(target) {
+							if (game.hasPlayer(current => get.attitude(player, current) > 2 && current.hasCards("j", card => get.name(card) == "lebu"))) {
+								return get.attitude(player, target) * current.hasCards("j", card => get.name(card) == "lebu") ? 2 : 0;
+							}
+							return -get.attitude(get.player(), target);
+						},
+					})
+					.forResult();
+			}
+		},
+		async content(event, trigger, player) {
+			if (!player.hasMark("pelinjie")) {
+				await player.damage("thunder");
+			} else {
+				const targets = event.targets;
+				player.removeMark("pelinjie", targets.length);
+				player.addSkill(event.name + "_effect");
+				player.markAuto(event.name + "_effect", targets);
+			}
+		},
+		subSkill: {
+			effect: {
+				charlotte: true,
+				intro: { content: "$的回合开始前，你可跳过其一个阶段" },
+				trigger: { global: "phaseBefore" },
+				filter(event, player) {
+					return player.getStorage("pelishi_effect").includes(event.player);
+				},
+				logTarget: "player",
+				async cost(event, trigger, player) {
+					player.unmarkAuto(event.skill, [trigger.player]);
+					const list = ["phaseZhunbei", "phaseJudge", "phaseDraw", "phaseUse", "phaseDiscard", "phaseJieshu"];
+					const result = await player
+						.chooseButton({
+							createDialog: [`你可令${get.translation(trigger.player)}跳过本回合的一个阶段`, [list.map(phase => [phase, get.translation(phase)]), "tdnodes"]],
+							ai(button) {
+								const { player, target } = get.event();
+								if (get.attitude(player, target) > 0) {
+									if (target.hasCards("j", card => ["shandian", "lebu", "bingliang"].includes(get.name(card)))) {
+										return button.link === "phaseJudge";
+									}
+									return button.link === "phaseDiscard";
+								}
+								if (target.countCards("h") > 4) {
+									return button.link === "phaseUse";
+								}
+								return button.link === ["phaseUse", "phaseDraw"].randomGet();
+							},
+						})
+						.set("target", trigger.player)
+						.forResult();
+					if (result?.bool && result.links?.length) {
+						event.result = {
+							bool: true,
+							cost_data: result.links,
+						};
+					}
+				},
+				async content(event, trigger, player) {
+					const {
+						cost_data: [phase],
+						targets: [target],
+					} = event;
+					target.skip(phase);
+					game.log(target, "跳过了", `#y${get.translation(phase)}`);
+				},
+			},
+		},
+		ai: { combo: "pelinjie" },
+	},
 	//神魏延------by 清风
 	psjimou: {
 		audio: 2,
@@ -1730,23 +1919,25 @@ const skills = {
 			if (!player.getStorage("perongbian").length) {
 				return false;
 			}
-			return get.inpileVCardList(info => {
-				if (!["basic", "trick"].includes(info[0])) {
-					return false;
-				}
-				return event.filterCard(
-					get.autoViewAs(
-						{
-							name: info[2],
-							nature: info[3],
-							storage: { peliezhan: true },
-						},
-						"unsure"
-					),
-					player,
-					event
-				);
-			}).length > 0;
+			return (
+				get.inpileVCardList(info => {
+					if (!["basic", "trick"].includes(info[0])) {
+						return false;
+					}
+					return event.filterCard(
+						get.autoViewAs(
+							{
+								name: info[2],
+								nature: info[3],
+								storage: { peliezhan: true },
+							},
+							"unsure"
+						),
+						player,
+						event
+					);
+				}).length > 0
+			);
 		},
 		chooseButton: {
 			dialog(event, player) {
@@ -2098,7 +2289,12 @@ const skills = {
 				return false;
 			}
 			return lib.phaseName.some(phase => {
-				return player.getHistory("gain", evt => evt.getParent(phase) === event.getParent(phase)).map(evt => event.name == "gain" ? evt : evt.getParent()).indexOf(event) === 0;
+				return (
+					player
+						.getHistory("gain", evt => evt.getParent(phase) === event.getParent(phase))
+						.map(evt => (event.name == "gain" ? evt : evt.getParent()))
+						.indexOf(event) === 0
+				);
 			});
 		},
 		async cost(event, trigger, player) {

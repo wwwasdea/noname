@@ -1,6 +1,16 @@
 import { lib, game, ui, get, ai, _status } from "noname";
 
 const translates = {
+	pe_shen_zhonghui: "PE神钟会",
+	pe_shen_zhonghui_prefix: "PE|神",
+	pelinjie: "凛界",
+	pelinjie_info: "每轮开始时，你可对一名角色造成1点伤害并令其获得1个“凛”。有“凛”的其他角色受到伤害后须弃置一张手牌。若其因此弃置了最后一张手牌，你对其造成1点伤害。",
+	peduzhang: "独仗",
+	peduzhang_info: "当你成为黑色牌的唯一目标后，你摸一张牌并获得一个“凛”，你的手牌上限+X（X为你拥有的“凛”的数量）。",
+	pejianghuo: "降祸",
+	pejianghuo_info: `觉醒技，回合开始时，若“凛”大于场上角色数，你将所有“凛”置于你的武将牌上，然后你摸X张牌并增加1点体力上限（X为你“凛”的数量），失去${get.poptip("pelinjie")}获得${get.poptip("pelishi")}。`,
+	pelishi: "立世",
+	pelishi_info: "结束阶段，若你没有“凛”，你受到1点雷电伤害。否则你可移去任意个“凛”并选择等量名角色，这些角色下回合开始前，你可选择一个阶段令其跳过。",
 	ps_shen_weiyan: "★神魏延",
 	ps_shen_weiyan_prefix: "★|神",
 	ps_devil_weiyan: "★魔魏延",
@@ -99,11 +109,11 @@ const translates = {
 	peyichi_info: "你执行摸牌阶段后，你可以令一名其他角色回复一点体力。",
 	tcmj_lishimin: "李世民",
 	tcmjpozhen: "破阵",
-    tcmjpozhen_info: `${get.poptip("rule_chihengji")}，你对其他角色造成伤害后，令其选择一项其本回合未选择的：1.你对其使用牌无次数距离限制；2.其交给你一个区域内的所有牌；3.其体力上限调整至1且失去所有技能。`,
-    tcmjtaoge: "韬戈",
-    tcmjtaoge_info: "每回合每种类别限一次，你可以将一张非装备牌当做同类别的牌使用。",
-    tcmjzhenguan: "贞观",
-    tcmjzhenguan_info: "主公技，每轮开始时或结束时，你令每种势力的一名其他角色摸一张牌，然后你摸X张牌（X为场上势力数）。",
+	tcmjpozhen_info: `${get.poptip("rule_chihengji")}，你对其他角色造成伤害后，令其选择一项其本回合未选择的：1.你对其使用牌无次数距离限制；2.其交给你一个区域内的所有牌；3.其体力上限调整至1且失去所有技能。`,
+	tcmjtaoge: "韬戈",
+	tcmjtaoge_info: "每回合每种类别限一次，你可以将一张非装备牌当做同类别的牌使用。",
+	tcmjzhenguan: "贞观",
+	tcmjzhenguan_info: "主公技，每轮开始时或结束时，你令每种势力的一名其他角色摸一张牌，然后你摸X张牌（X为场上势力数）。",
 	ylyg_zhurong: "雁翎祝融",
 	ylyg_zhurong_prefix: "雁翎",
 	ylyg_lieren: "烈刃",
@@ -2309,7 +2319,6 @@ const translates = {
 	sm_prettyDerby_info: "锁定技，你计算与其他角色的距离-1，其他角色计算与你的距离+1。",
 	sm_kuangchi: "狂驰",
 	sm_kuangchi_info: "你杀死一名角色后，可以交给其一张“赛马”代替其一张武将牌并令其复活，其胜利条件改为与你一致。",
-
 };
 
 export default translates;

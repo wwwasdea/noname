@@ -468,4 +468,5 @@ window.noname_character_replace = {
 	wangji: ["wangji", "re_wangji"],
 	cheliji: ["cheliji", "mb_cheliji"],
 	ns_huamulan: ["ns_huamulan", "pe_huamulan"],
+	shen_zhonghui: ["shen_zhonghui", "pe_shen_zhonghui"],
 };
