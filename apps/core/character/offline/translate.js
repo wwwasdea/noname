@@ -1,6 +1,12 @@
 import { lib, game, ui, get, ai, _status } from "noname";
 
 const translates = {
+	ym_friend_zhugeliang: "墨友诸葛亮",
+	ym_friend_zhugeliang_prefix: "墨|友",
+	ymfriendyance: "演策",
+	ymfriendyance_info: "每轮开始时，你可以摸五张牌并将等量张手牌以任意顺序置于武将牌上直到本轮结束。当一张牌被使用时，你移去武将牌上首张牌，每满足一项你便摸一张牌：1.两张牌花色相同；2.两张牌类型相同。",
+	ymfriendfangqiu: "方遒",
+	ymfriendfangqiu_info: `限定技，当你因${get.poptip("ymfriendyance")}放置牌后，你可以展示武将牌上的所有“演策”牌，直到本轮结束你因${get.poptip("ymfriendyance")}获得的牌翻倍。`,
 	pe_shen_zhonghui: "PE神钟会",
 	pe_shen_zhonghui_prefix: "PE|神",
 	pelinjie: "凛界",

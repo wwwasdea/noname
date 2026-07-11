@@ -3,6 +3,136 @@ import html from "dedent";
 
 /** @type { importCharacterConfig["skill"] } */
 const skills = {
+	//线下奶龙------by 清风
+	ymfriendyance: {
+		audio: ["friendyance1.mp3", "friendyance2.mp3", "friendyance3.mp3"],
+		logAudio: () => ["friendyance1.mp3"],
+		trigger: { global: "roundStart" },
+		async content(event, trigger, player) {
+			await player.draw({ num: 5 });
+			if (!player.hasCards("h")) {
+				return;
+			}
+			const num = Math.min(5, player.countCards("h"));
+			const result = await player
+				.chooseCard({
+					prompt: `演策：将${get.cnNumber(num)}张手牌置于武将牌上（先选择的在上）`,
+					selectCard: num,
+					position: "h",
+					ai(card) {
+						return -player.getUseValue(card);
+					},
+					forced: true,
+					filterOk() {
+						return ui.selected.cards?.length === get.event().num;
+					},
+				})
+				.set("num", num)
+				.forResult();
+			if (result?.bool && result.cards?.length) {
+				const cards = result.cards.reverse();
+				player.addTempSkill(event.name + "_yance", "roundStart");
+				await player.addToExpansion({ cards, source: player, animate: "give", gaintag: [event.name + "_yance"] });
+				await event.trigger("ymfriendyance_minigame");
+			}
+		},
+		subSkill: {
+			yance: {
+				forced: true,
+				charlotte: true,
+				audio: "ymfriendyance",
+				logAudio: () => ["friendyance2.mp3", "friendyance3.mp3"],
+				onremove(player, skill) {
+					delete player.storage[skill];
+					const cards = player.getExpansions(skill);
+					if (cards.length) {
+						player.loseToDiscardpile({ cards });
+					}
+				},
+				marktext: "策",
+				intro: {
+					name: "演策",
+					markcount(storage, player) {
+						return player.getExpansions("ymfriendyance_yance").length;
+					},
+					mark(dialog, content, player) {
+						if (!player.storage.ymfriendyance_yance && !player.isUnderControl(true)) {
+							return "天机可知却不可说...";
+						}
+						const cards = player.getExpansions("ymfriendyance_yance");
+						if (cards.length) {
+							dialog.addAuto(cards);
+						} else {
+							return "无演策牌";
+						}
+					},
+				},
+				trigger: { global: "useCard" },
+				filter(event, player) {
+					return player.hasExpansions("ymfriendyance_yance");
+				},
+				async content(event, trigger, player) {
+					const cardx = player.getExpansions(event.name)[0],
+						card = trigger.card;
+					await player.loseToDiscardpile({ cards: [cardx] });
+					let num = 0;
+					if (get.suit(card) == get.suit(cardx)) {
+						num++;
+					}
+					if (get.type2(card) == get.type2(cardx)) {
+						num++;
+					}
+					if (player.storage[event.name]) {
+						num *= 2;
+					}
+					if (num > 0) {
+						player.popup("洗具");
+						await player.draw({ num });
+					} else {
+						player.popup("杯具");
+					}
+					if (!player.hasExpansions("ymfriendyance_yance")) {
+						player.removeSkill(event.name);
+					}
+				},
+				mod: {
+					aiOrder(player, card, num) {
+						const cards = player.getExpansions("ymfriendyance_yance");
+						if (!cards.length) {
+							return;
+						}
+						const cardx = cards[0];
+						if (get.suit(card) == get.suit(cardx) || get.type2(card) == get.type2(cardx)) {
+							return (num += 100);
+						}
+					},
+				},
+			},
+		},
+	},
+	ymfriendfangqiu: {
+		audio: ["friendfangqiu1.mp3", "friendfangqiu2.mp3"],
+		limited: true,
+		skillAnimation: true,
+		animationColor: "wood",
+		trigger: { player: "ymfriendyance_minigame" },
+		filter(event, player) {
+			return player.hasExpansions("ymfriendyance_yance");
+		},
+		check(event, player) {
+			const target = game.findPlayer(target => target.getSeatNum() == 1);
+			return get.attitude(player, target) > 0;
+		},
+		async content(event, trigger, player) {
+			player.awakenSkill(event.name);
+			player.storage.ymfriendyance_yance = true;
+			const cards = player.getExpansions("ymfriendyance_yance");
+			if (cards.length) {
+				await player.showCards(cards, `${get.translation(player)}发动了【${get.translation(event.name)}】`);
+			}
+		},
+		ai: { combo: "ymfriendyance" },
+	},
 	//PE神钟会------by 清风
 	pelinjie: {
 		audio: "dclinjie",

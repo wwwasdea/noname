@@ -1,4 +1,5 @@
 export default {
+	ym_friend_zhugeliang: "龙骧九天",
 	pe_shen_zhonghui: "荡徊的蜚螭",
 	ps_shen_weiyan: "子午创世神",
 	ps_devil_weiyan: "戾骨噬汉魔",

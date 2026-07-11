@@ -1,4 +1,12 @@
 const characters = {
+	ym_friend_zhugeliang: {
+		sex: "male",
+		group: "qun",
+		hp: 3,
+		skills: ["ymfriendyance", "ymfriendfangqiu"],
+		names: "诸葛|亮",
+		dieAudios: ["friend_zhugeliang"],
+	},
 	pe_shen_zhonghui: {
 		sex: "male",
 		group: "shen",
