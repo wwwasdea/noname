@@ -610,7 +610,7 @@ const skills = {
 		async content(event, trigger, player) {
 			const { target } = event;
 			const result = await target
-				.chooseCard({
+				.chooseToGive({
 					prompt: `交给${get.translation(player)}一张装备牌，或令其获得你的一张牌`,
 					filterCard(card) {
 						return get.type(card) === "equip";
@@ -622,10 +622,11 @@ const skills = {
 						}
 						return 5 - get.value(card);
 					},
+					target: player,
 				})
 				.set("goon", target.canUse("sha", player, false) && get.effect(player, { name: "sha" }, target, target) > 0)
 				.forResult();
-			if (!result.bool || !result.cards?.length) {
+			if (!result?.bool || !result.cards?.length) {
 				await player.gainPlayerCard({
 					target,
 					position: "he",
@@ -633,8 +634,7 @@ const skills = {
 				});
 				return;
 			}
-			const result2 = await target.give(result.cards, player).forResult();
-			if (result2.bool && result2.cards && result2.cards.length && target.isIn() && player.isIn() && get.suit(result2.cards[0], target) === "spade" && target.canUse("sha", player, false)) {
+			if (result?.bool && result.cards?.length && target.isIn() && player.isIn() && get.suit(result.cards[0], target) === "spade" && target.canUse("sha", player, false)) {
 				await target.useCard({
 					card: get.autoViewAs({ name: "sha", isCard: true }),
 					targets: [player],
